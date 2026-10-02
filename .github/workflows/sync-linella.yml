@@ -1,0 +1,45 @@
+name: Import Linella
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 3 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: linella-catalog-import
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    defaults:
+      run:
+        working-directory: server
+        shell: bash
+    steps:
+      - name: Download source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12.10'
+      - name: Install dependencies
+        run: python -m pip install -r requirements.lock
+      - name: Import catalog into PostgreSQL
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SCRAPER_CONCURRENCY: '4'
+          SCRAPER_INTERVAL_SECONDS: '0.5'
+          PYTHONUNBUFFERED: '1'
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo '::error::Add the DATABASE_URL repository secret before running this workflow.'
+            exit 1
+          fi
+          python -m app.cli sync-linella
