@@ -1,0 +1,9 @@
+* text=auto
+*.dart text eol=lf
+*.py text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+# Preserve the user's fixtures byte-for-byte across Windows/Linux checkouts.
+test/fixtures/*.html -text
+test/fixtures/*.xlsx -text
+assets/*.txt -text

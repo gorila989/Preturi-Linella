@@ -1,0 +1,46 @@
+# Existing services: use the manual upgrade steps in DEPLOY_RENDER.md instead
+# of creating duplicate resources with this optional new-install Blueprint.
+databases:
+  - name: cauta-pret-db
+    databaseName: cauta_pret
+    user: cauta_pret
+    plan: 0.1c-256mb
+    ipAllowList: []
+services:
+  - type: web
+    name: cauta-pret-api
+    runtime: python
+    rootDir: server
+    plan: 0.5c-512mb
+    buildCommand: pip install -r requirements.lock
+    preDeployCommand: alembic upgrade head
+    startCommand: uvicorn app.api:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.10
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cauta-pret-db
+          property: connectionString
+      - key: SYNC_CURSOR_SECRET
+        generateValue: true
+  - type: cron
+    name: cauta-pret-linella-sync
+    runtime: python
+    rootDir: server
+    plan: 0.5c-512mb
+    schedule: '0 3 * * *'
+    buildCommand: pip install -r requirements.lock
+    startCommand: python -m app.cli sync-linella
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.10
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cauta-pret-db
+          property: connectionString
+      - key: SCRAPER_CONCURRENCY
+        value: '4'
+      - key: SCRAPER_INTERVAL_SECONDS
+        value: '0.5'
