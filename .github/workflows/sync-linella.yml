@@ -2,6 +2,24 @@ name: Import Linella
 
 on:
   workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Full HTML discovery or a bounded selective update'
+        type: choice
+        options: [full, selective]
+        default: full
+      search_api:
+        description: 'Enable supplemental Search API for this run'
+        type: boolean
+        default: false
+      query:
+        description: 'Selective mode only: concrete query, e.g. red bull'
+        type: string
+        default: ''
+      category:
+        description: 'Selective mode only: existing category path, e.g. /bauturi/energizante/'
+        type: string
+        default: ''
   schedule:
     - cron: '17 3 * * *'
 
@@ -37,9 +55,24 @@ jobs:
           SCRAPER_CONCURRENCY: '4'
           SCRAPER_INTERVAL_SECONDS: '0.5'
           PYTHONUNBUFFERED: '1'
+          LINELLA_SEARCH_API_ENABLED: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.search_api || vars.LINELLA_SEARCH_API_ENABLED || 'false' }}
+          LINELLA_SEARCH_SELECTIONS: ${{ vars.LINELLA_SEARCH_SELECTIONS || '[]' }}
+          RUN_MODE: ${{ github.event.inputs.mode || 'full' }}
+          SEARCH_QUERY: ${{ github.event.inputs.query || '' }}
+          SEARCH_CATEGORY: ${{ github.event.inputs.category || '' }}
         run: |
           if [ -z "$DATABASE_URL" ]; then
             echo '::error::Add the DATABASE_URL repository secret before running this workflow.'
             exit 1
           fi
-          python -m app.cli sync-linella
+          case "$RUN_MODE" in
+            full) python -m app.cli sync-linella ;;
+            selective)
+              if [ -z "$SEARCH_QUERY" ] || [ -z "$SEARCH_CATEGORY" ]; then
+                echo '::error::Selective mode requires query and category.'
+                exit 1
+              fi
+              python -m app.cli sync-selected --query "$SEARCH_QUERY" --category "$SEARCH_CATEGORY"
+              ;;
+            *) echo '::error::Invalid run mode.'; exit 1 ;;
+          esac
