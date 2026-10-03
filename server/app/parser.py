@@ -58,7 +58,15 @@ class SourceThumbnailStorage:
 def parse_products(source, category_id=None):
     doc = BeautifulSoup(source, 'lxml')
     products = []
-    for card in doc.select('.ut2-gl__item'):
+    cards = doc.select('.ut2-gl__item')
+    restricted = 0
+    page_restricted = not cards and doc.select_one('.ty-age-verification__txt') is not None
+    for card in cards:
+        # The live source replaces restricted products with an age-check card.
+        # Do not infer identifiers/prices or submit an age confirmation.
+        if card.select_one('.ty-age-verification__block') is not None:
+            restricted += 1
+            continue
         title = card.select_one('a.product-title')
         identity = card.select_one('input[name$="[product_id]"]')
         if title is None or identity is None:
@@ -88,12 +96,13 @@ def parse_products(source, category_id=None):
             in_stock=True if card.select_one('.ty-qty-in-stock') else
                      False if card.select_one('.ty-qty-out-of-stock') else None,
             possibly_inactive=False, inactive=False, missing_count=0))
-    if not products and doc.select_one('.ty-no-items') is None:
+    if not products and not restricted and not page_restricted and doc.select_one('.ty-no-items') is None:
         raise ValueError('Product list not recognized; previous data preserved')
     stats = dict(productsFound=len(products), productsWithCurrentPrice=sum(p['price'] is not None for p in products),
                  productsWithOldPrice=sum(p['old_price'] is not None for p in products),
                  productsWithDiscount=sum((p['discount_percent'] or 0) > 0 for p in products),
-                 promotionalProductsDetected=sum(p['promotion_state'] == 'observed' for p in products))
+                 promotionalProductsDetected=sum(p['promotion_state'] == 'observed' for p in products),
+                 ageRestrictedCards=restricted, ageRestrictedPage=page_restricted)
     return products, stats
 
 

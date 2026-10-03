@@ -56,7 +56,8 @@ class Synchronizer:
         self.stats = dict(categoriesProcessed=0, pagesDownloaded=0, productDetailPagesDownloaded=0,
                           categoryPagesDownloaded=0,
                           productsParsed=0, productsAdded=0, productsUpdated=0, productsUnchanged=0,
-                          promotionsDetected=0, imagesProcessed=0, errors=0)
+                          promotionsDetected=0, imagesProcessed=0, errors=0,
+                          ageRestrictedPages=0, ageRestrictedCards=0)
 
     def category_for(self, url):
         matches = [c for c in self.categories if url.startswith(c['source_url'])]
@@ -65,6 +66,7 @@ class Synchronizer:
     async def scope(self, url, category=None, collection=None, first=None):
         visited, seen, signatures = set(), set(), set()
         promotion = None
+        restricted_scope = False
         while url:
             if url in visited: raise ValueError('Pagination loop; scope not confirmed complete')
             visited.add(url)
@@ -73,6 +75,11 @@ class Synchronizer:
             if collection == 'mega' and promotion is None:
                 promotion = parse_promotion(source)
             items, counts = parse_products(source, category)
+            if counts['ageRestrictedPage'] or counts['ageRestrictedCards']:
+                restricted_scope = True
+                self.stats['ageRestrictedPages'] += 1
+                self.stats['ageRestrictedCards'] += counts['ageRestrictedCards']
+                log.warning('Age verification required at %s; importing visible products only; scope remains incomplete', url)
             signature = tuple(sorted(p['id'] for p in items))
             if signature and signature in signatures:
                 raise ValueError('Repeated page content; scope not confirmed complete')
@@ -94,7 +101,11 @@ class Synchronizer:
                     result = upsert(db, state, Product, item, 'product')
                     self.stats['products' + result.title()] += 1
                     seen.add(item['id'])
-            url = next_page(source, url)
+            url = None if counts['ageRestrictedPage'] else next_page(source, url)
+        if restricted_scope:
+            # Visible rows are saved, but missing rows are not confirmed absent.
+            # Preserve existing collection membership and inactivity counters.
+            return seen
         if collection:
             with session() as db, writer(db) as state:
                 data = dict(type=collection, name='Mega Ofertă' if collection == 'mega' else 'Cele mai bune oferte',
@@ -169,7 +180,9 @@ class Synchronizer:
                     self.stats.update(totalRequests=self.fetcher.requests, durationMs=int((time.monotonic()-started)*1000))
                     with session() as db, db.begin():
                         run = db.get(SyncRun, run_id)
-                        run.finished_at, run.status, run.stats = now(), 'partial' if self.stats['errors'] else 'complete', self.stats
+                        run.finished_at, run.status, run.stats = now(), 'partial' if self.stats['errors'] or self.stats['ageRestrictedPages'] else 'complete', self.stats
+                    if self.stats['ageRestrictedPages']:
+                        log.warning('PARTIAL CATALOG: age-restricted content was not imported; previous memberships preserved')
                     log.info('SyncRun %s %s', run_id, self.stats)
             finally:
                 lock.execute(text('SELECT pg_advisory_unlock(37012026)'))
