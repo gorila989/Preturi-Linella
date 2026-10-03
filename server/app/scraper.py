@@ -126,7 +126,10 @@ class Synchronizer:
 
     async def run(self):
         started = time.monotonic()
-        with engine().connect() as lock:
+        # Session advisory locks survive statement commits. Keep this dedicated
+        # connection out of a transaction while HTTP requests and page writes run;
+        # otherwise hosted Postgres can terminate it as idle-in-transaction.
+        with engine().connect().execution_options(isolation_level='AUTOCOMMIT') as lock:
             if not lock.scalar(text('SELECT pg_try_advisory_lock(37012026)')):
                 raise RuntimeError('Another catalog sync is running')
             try:
