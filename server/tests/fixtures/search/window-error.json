@@ -1,0 +1,13 @@
+{
+  "notifications": {
+    "7af8a66736c6d517de17142e1bf34ee7": {
+      "type": "E",
+      "title": "Eroare",
+      "message": "400 Bad Request: {\"error\":{\"root_cause\":[{\"type\":\"illegal_argument_exception\",\"reason\":\"Result window is too large, from + size must be less than or equal to: [20000] but was [24736]. See the scroll api for a more efficient way to request large data sets. This limit can be set by changing the [index.max_result_window] index level setting.\"}],\"type\":\"search_phase_execution_exception\",\"reason\":\"all shards failed\",\"phase\":\"query\",\"grouped\":true,\"failed_shards\":[{\"shard\":0,\"index\":\"default_products_v87\",\"node\":\"5pTDD4bcT82yb71bobW8gg\",\"reason\":{\"type\":\"illegal_argument_exception\",\"reason\":\"Result window is too large, from + size must be less than or equal to: [20000] but was [24736]. See the scroll api for a more efficient way to request large data sets. This limit can be set by changing the [index.max_result_window] index level setting.\"}}],\"caused_by\":{\"type\":\"illegal_argument_exception\",\"reason\":\"Result window is too large, from + size must be less than or equal to: [20000] but was [24736]. See the scroll api for a more efficient way to request large data sets. This limit can be set by changing the [index.max_result_window] index level setting.\",\"caused_by\":{\"type\":\"illegal_argument_exception\",\"reason\":\"Result window is too large, from + size must be less than or equal to: [20000] but was [24736]. See the scroll api for a more efficient way to request large data sets. This limit can be set by changing the [index.max_result_window] index level setting.\"}}},\"status\":400}",
+      "message_state": "K",
+      "new": true,
+      "extra": "",
+      "init_message": false
+    }
+  }
+}

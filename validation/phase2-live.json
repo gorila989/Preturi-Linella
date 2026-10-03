@@ -1,0 +1,45 @@
+{
+  "search": {
+    "durationSeconds": 1.2801385999191552,
+    "httpRequests": 2,
+    "products": 32,
+    "metrics": {
+      "searchApiRequests": 1,
+      "searchApiProducts": 32,
+      "searchApiFailures": 0,
+      "securityHashRefreshes": 0,
+      "htmlFallbackRequests": 0,
+      "stockRequests": 0,
+      "searchUnknownProducts": 0,
+      "searchPromotionConflicts": 0
+    },
+    "sessionInitialized": true,
+    "cookieCount": 2
+  },
+  "html": {
+    "durationSeconds": 4.9282427000580356,
+    "httpRequests": 4,
+    "products": 82,
+    "complete": true
+  },
+  "comparison": {
+    "commonIds": 7,
+    "priceMatches": 7,
+    "oldPriceMatches": 7,
+    "productsUpdated": null,
+    "note": "Read-only live probe; database updates tested separately on isolated PostgreSQL."
+  },
+  "stock": {
+    "product_id": "32956",
+    "context": "Кишинев",
+    "entries": [
+      {
+        "label": "În stoc în 1 magazin",
+        "value": "în 1 magazin"
+      }
+    ],
+    "checked_at": "2026-10-03T19:02:35.222969+00:00"
+  },
+  "totalRequests": 7,
+  "stockVerificationAdditionalRequests": 2
+}

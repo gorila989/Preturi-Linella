@@ -1,5 +1,7 @@
 # Caută Preț 2.0.1 — catalog central și aplicație offline
 
+Faza 2 server-side: [Search API hibrid, activare și validare](FAZA_2_SEARCH_API.md). Flag-ul este implicit OFF; HTML rămâne sursa de descoperire.
+
 Adresa Render este preconfigurată. Vezi [CONEXIUNE_2.0.1.md](CONEXIUNE_2.0.1.md) pentru starea conectării.
 
 Linella → job Python → PostgreSQL → FastAPI HTTPS → Flutter → SQLite + miniaturi.

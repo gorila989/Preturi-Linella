@@ -1,0 +1,26 @@
+[
+  {
+    "enabled": false,
+    "durationSeconds": 4.660864099976607,
+    "httpRequests": 10,
+    "productsDiscovered": 0,
+    "knownProducts": 240,
+    "productsUpdated": 240,
+    "promotionsDetected": 240,
+    "failures": 0,
+    "searchApiFailures": 0,
+    "fallbackRequests": 0
+  },
+  {
+    "enabled": true,
+    "durationSeconds": 1.8901886999374256,
+    "httpRequests": 4,
+    "productsDiscovered": 0,
+    "knownProducts": 240,
+    "productsUpdated": 240,
+    "promotionsDetected": 240,
+    "failures": 0,
+    "searchApiFailures": 0,
+    "fallbackRequests": 0
+  }
+]

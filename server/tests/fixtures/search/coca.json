@@ -1,0 +1,320 @@
+{
+  "success": {
+    "products": [
+      {
+        "product_id": "29835",
+        "name": "Bautura 0.5l COCA COLA",
+        "category": "Băuturi răcoritoare",
+        "price": "15.99lei",
+        "original_product_id": null,
+        "cart_available": true,
+        "brand": "Coca-Cola",
+        "url": "https://linella.md/bauturi/bauturi-racoritoare/bautura-0-5l-coca-cola/",
+        "img": "https://linella.md/images/thumbnails/400/400/detailed/34/61352ae81577761bbded09ce9c828cbd.jpg"
+      },
+      {
+        "product_id": "30139",
+        "name": "Bautura racoritoare Original 1.25l COCA COLA",
+        "category": "Băuturi răcoritoare",
+        "price": "21.99lei",
+        "original_product_id": null,
+        "cart_available": true,
+        "brand": "Coca-Cola",
+        "list_price": "23.99lei",
+        "url": "https://linella.md/bauturi/bauturi-racoritoare/bautura-racoritoare-original-1-25l-coca-cola/",
+        "img": "https://linella.md/images/thumbnails/400/400/detailed/35/bfdd98e3e7978ab10d5c6996be341808.jpg"
+      },
+      {
+        "product_id": "29942",
+        "name": "Bautura Zero 0.5l COCA COLA",
+        "category": "Băuturi răcoritoare",
+        "price": "15.99lei",
+        "original_product_id": null,
+        "cart_available": true,
+        "brand": "Coca-Cola",
+        "url": "https://linella.md/bauturi/bauturi-racoritoare/bautura-zero-0-5l-coca-cola/",
+        "img": "https://linella.md/images/thumbnails/400/400/detailed/34/c8dfb05b9602775fde6613f6b2d0622a.jpg"
+      },
+      {
+        "product_id": "30140",
+        "name": "Bautura racoritoare Zero 1.25l COCA COLA",
+        "category": "Băuturi răcoritoare",
+        "price": "21.99lei",
+        "original_product_id": null,
+        "cart_available": true,
+        "brand": "Coca-Cola",
+        "list_price": "23.99lei",
+        "url": "https://linella.md/bauturi/bauturi-racoritoare/bautura-racoritoare-zero-1-25l-coca-cola/",
+        "img": "https://linella.md/images/thumbnails/400/400/detailed/35/b74d00f242e01586fb50a138dbfbbe93.jpg"
+      },
+      {
+        "product_id": "49507",
+        "name": "Bautura racoritoare Vanila 1.25l COCA COLA",
+        "category": "Băuturi răcoritoare",
+        "price": "21.99lei",
+        "original_product_id": null,
+        "cart_available": true,
+        "brand": "Coca-Cola",
+        "list_price": "23.99lei",
+        "url": "https://linella.md/bauturi/bauturi-racoritoare/bautura-racoritoare-vanila-1-25l-coca-cola/",
+        "img": "https://linella.md/images/thumbnails/400/400/detailed/57/3fdbfb7b8c3cf6113015c234b0e2a0e9.jpg"
+      },
+      {
+        "product_id": "38023",
+        "name": "Pasta de dinti Repair Sensitivity Calm 75ml ORAL-B",
+        "category": "Igienă orală",
+        "price": "87.99lei",
+        "original_product_id": null,
+        "cart_available": true,
+        "brand": "Oral-B",
+        "list_price": "101lei",
+        "url": "https://linella.md/igiena-si-ingrijire/igiena-orala/pasta-de-dinti-repair-sensitivity-calm-75ml-oral-b/",
+        "img": "https://linella.md/images/thumbnails/400/400/detailed/42/e2b7e66c50a6a762dffb5bb043a37fb2.jpg"
+      },
+      {
+        "product_id": "30029",
+        "name": "Bautura carbogazoasa Coffeе Plus 0.25l COCA COLA",
+        "category": "Băuturi răcoritoare",
+        "price": "14.99lei",
+        "original_product_id": null,
+        "cart_available": true,
+        "brand": "Coca-Cola",
+        "url": "https://linella.md/bauturi/bauturi-racoritoare/bautura-carbogazoasa-coffee-plus-0-25l-coca-cola/",
+        "img": "https://linella.md/images/thumbnails/400/400/detailed/34/e6d398ce0e0f062e2eb82cce9c1cc32e.jpg"
+      },
+      {
+        "product_id": "29834",
+        "name": "Bautura racoritoare Original 0.33l COCA COLA",
+        "category": "Băuturi răcoritoare",
+        "price": "13.99lei",
+        "original_product_id": null,
+        "cart_available": true,
+        "brand": "Coca-Cola",
+        "url": "https://linella.md/bauturi/bauturi-racoritoare/bautura-racoritoare-original-0-33l-coca-cola/",
+        "img": "https://linella.md/images/thumbnails/400/400/detailed/34/03ff7152dec472412fed3041e52cdb00.jpg"
+      },
+      {
+        "product_id": "39275",
+        "name": "SELECTA Servetele umede antibacteriene 120buc RUTA",
+        "category": "Servetele umede",
+        "price": "43.8lei",
+        "original_product_id": null,
+        "cart_available": true,
+        "brand": "Ruta",
+        "url": "https://linella.md/igiena-si-ingrijire/servetele-umede/selecta-servetele-umede-antibacteriene-120buc-ruta/",
+        "img": "https://linella.md/images/thumbnails/400/400/detailed/44/4a4ae33144d738c26d7b84a6e8a9013d.jpg"
+      },
+      {
+        "product_id": "37953",
+        "name": "MAX Pasta de dinti White Shine 75ml COLGATE",
+        "category": "Igienă orală",
+        "price": "56.99lei",
+        "original_product_id": null,
+        "cart_available": true,
+        "brand": "Colgate",
+        "url": "https://linella.md/igiena-si-ingrijire/igiena-orala/max-pasta-de-dinti-white-shine-75ml-colgate/",
+        "img": "https://linella.md/images/thumbnails/400/400/detailed/42/efbf744b3921347f1d3b08a7d4754494.jpg"
+      },
+      {
+        "product_id": "38636",
+        "name": "Sampon de salvie 400ml ЧИСТАЯ ЛИНИЯ",
+        "category": "Îngrijire păr",
+        "price": "61lei",
+        "original_product_id": null,
+        "cart_available": true,
+        "brand": "Чистая Линия",
+        "url": "https://linella.md/igiena-si-ingrijire/ingrijire-par/sampon-de-salvie-400ml-chistaya-liniya/",
+        "img": "https://linella.md/images/thumbnails/400/400/detailed/43/be1969045116751ce8ece2e6b4eb4a95.jpg"
+      },
+      {
+        "product_id": "38288",
+        "name": "Gel de dus Argan Oli cu dozator 1L DERMOMED",
+        "category": "Îngrijire corp",
+        "price": "87.9lei",
+        "original_product_id": null,
+        "cart_available": true,
+        "brand": "DERMOmed",
+        "url": "https://linella.md/igiena-si-ingrijire/ingrijire-corp/gel-de-dus-argan-oli-cu-dozator-1l-dermomed/",
+        "img": "https://linella.md/images/thumbnails/400/400/detailed/43/f2043cefb61309f8b47cbf8928543fd9.jpg"
+      },
+      {
+        "product_id": "38469",
+        "name": "Gel/dus Iris cu dozator 1L DERMOMED",
+        "category": "Îngrijire corp",
+        "price": "87.9lei",
+        "original_product_id": null,
+        "cart_available": true,
+        "brand": "DERMOmed",
+        "url": "https://linella.md/igiena-si-ingrijire/ingrijire-corp/gel-dus-iris-cu-dozator-1l-dermomed/",
+        "img": "https://linella.md/images/thumbnails/400/400/detailed/43/3fdfb7b766d03127eb6bcc1ce1508aef.jpg"
+      },
+      {
+        "product_id": "37882",
+        "name": "Pasta de dinti Repair&Protect 75ml SENSODYNE",
+        "category": "Igienă orală",
+        "price": "159lei",
+        "original_product_id": null,
+        "cart_available": true,
+        "brand": "Sensodyne",
+        "url": "https://linella.md/igiena-si-ingrijire/igiena-orala/pasta-de-dinti-repair-and-protect-75ml-sensodyne/",
+        "img": "https://linella.md/images/thumbnails/400/400/detailed/42/ce7c7a7fcd361d4c456946507c0b64df.jpg"
+      },
+      {
+        "product_id": "37940",
+        "name": "Pasta de dinti Advanced Charcoal 100ml COLGATE",
+        "category": "Igienă orală",
+        "price": "78.75lei",
+        "original_product_id": null,
+        "cart_available": true,
+        "brand": "Colgate",
+        "url": "https://linella.md/igiena-si-ingrijire/igiena-orala/pasta-de-dinti-advanced-charcoal-100ml-colgate/",
+        "img": "https://linella.md/images/thumbnails/400/400/detailed/42/a9fd0faa4ec0bf7dc022d33807ad0da4.jpg"
+      },
+      {
+        "product_id": "37930",
+        "name": "Complete Protection Whitening pasta de PARODONTAX",
+        "category": "Igienă orală",
+        "price": "133lei",
+        "original_product_id": null,
+        "cart_available": true,
+        "brand": "Parodontax",
+        "url": "https://linella.md/igiena-si-ingrijire/igiena-orala/complete-protection-whitening-pasta-de-parodontax/",
+        "img": "https://linella.md/images/thumbnails/400/400/detailed/42/89853f8bc7656068622350ca6800ab07.jpg"
+      }
+    ],
+    "categories": [
+      {
+        "category_id": "368",
+        "name": "Băuturi",
+        "full_name": "Băuturi",
+        "url": "https://linella.md/bauturi/"
+      },
+      {
+        "category_id": "505",
+        "name": "Igienă și îngrijire",
+        "full_name": "Igienă și îngrijire",
+        "url": "https://linella.md/igiena-si-ingrijire/"
+      },
+      {
+        "category_id": "679",
+        "name": "Șampoane",
+        "full_name": "Igienă și îngrijire / Șampoane",
+        "url": "https://linella.md/igiena-si-ingrijire/sampoane/"
+      },
+      {
+        "category_id": "714",
+        "name": "Îngrijire păr",
+        "full_name": "Igienă și îngrijire / Îngrijire păr",
+        "url": "https://linella.md/igiena-si-ingrijire/ingrijire-par/"
+      },
+      {
+        "category_id": "512",
+        "name": "Săpun",
+        "full_name": "Igienă și îngrijire / Săpun",
+        "url": "https://linella.md/igiena-si-ingrijire/sapun/"
+      },
+      {
+        "category_id": "381",
+        "name": "Băuturi răcoritoare",
+        "full_name": "Băuturi / Băuturi răcoritoare",
+        "url": "https://linella.md/bauturi/bauturi-racoritoare/"
+      }
+    ],
+    "brands": [
+      {
+        "brand_id": "196803",
+        "name": "Coca Cola Energy",
+        "url": "https://linella.md/coca-cola-energy-ro/"
+      },
+      {
+        "brand_id": "196127",
+        "name": "Coca Cola Zero",
+        "url": "https://linella.md/coca-cola-zero-ro/"
+      },
+      {
+        "brand_id": "195048",
+        "name": "Coca-Cola",
+        "url": "https://linella.md/coca-cola-ro-5/"
+      }
+    ],
+    "suggest": null,
+    "vendors": [],
+    "counts_string": {
+      "products": "Total produse 151",
+      "categories": "Total produse 6",
+      "brands": "Total produse 3",
+      "vendors": "Total produse 0"
+    },
+    "counts": {
+      "products": 151,
+      "categories": 6,
+      "brands": 3,
+      "vendors": 0
+    },
+    "brand_filter": {
+      "available": true,
+      "parameter": "brand_id",
+      "filter_id": 5,
+      "feature_id": 10,
+      "selected_value": null,
+      "values": [
+        {
+          "brand_id": "196803",
+          "name": "Coca Cola Energy",
+          "url": "https://linella.md/cautare/?match=all&subcats=Y&pcode_from_q=Y&pshort=Y&pfull=Y&pname=Y&pkeywords=Y&search_performed=Y&q=coca&features_hash=5-196803"
+        },
+        {
+          "brand_id": "196127",
+          "name": "Coca Cola Zero",
+          "url": "https://linella.md/cautare/?match=all&subcats=Y&pcode_from_q=Y&pshort=Y&pfull=Y&pname=Y&pkeywords=Y&search_performed=Y&q=coca&features_hash=5-196127"
+        },
+        {
+          "brand_id": "195048",
+          "name": "Coca-Cola",
+          "url": "https://linella.md/cautare/?match=all&subcats=Y&pcode_from_q=Y&pshort=Y&pfull=Y&pname=Y&pkeywords=Y&search_performed=Y&q=coca&features_hash=5-195048"
+        }
+      ]
+    },
+    "meta": {
+      "query": "coca",
+      "offset": 0,
+      "limit": 16,
+      "returned": 16,
+      "total": 151,
+      "brand_id": null,
+      "has_more": true,
+      "next_offset": 16
+    },
+    "settings": {
+      "need_auth": false,
+      "show_prices": true,
+      "orders": [
+        "categories",
+        "brands",
+        "vendors"
+      ],
+      "headers": {
+        "products": "Produse",
+        "categories": "Categorii",
+        "brands": "Branduri",
+        "vendors": "Furnizori"
+      },
+      "langs": {
+        "more": "Mai mult 16",
+        "from": "de la",
+        "offers": "offers",
+        "brand": "Brand",
+        "nothing_found": "No results",
+        "add_to_cart": "Adaugati in cos",
+        "out_of_stock": "Stoc indisponibil",
+        "sign_in_to_buy": "Please sign in",
+        "did_you_mean": "Did you mean",
+        "view": "Vizualizare",
+        "view_all": "Vezi toate",
+        "buy_now": "Cumparati acum"
+      },
+      "catalog_mode": false
+    }
+  },
+  "notifications": []
+}

@@ -15,8 +15,8 @@ log = logging.getLogger('linella')
 
 
 class Fetcher:
-    def __init__(self):
-        self.client = httpx.AsyncClient(timeout=30, follow_redirects=False,
+    def __init__(self, client=None):
+        self.client = client or httpx.AsyncClient(timeout=30, follow_redirects=False,
             headers={'User-Agent': os.getenv('SCRAPER_USER_AGENT', 'CautaPretCatalog/2.0')})
         self.sem = asyncio.Semaphore(max(1, min(4, int(os.getenv('SCRAPER_CONCURRENCY', '4')))))
         self.rate_lock = asyncio.Lock()
@@ -24,6 +24,9 @@ class Fetcher:
         self.requests = 0
 
     async def get(self, url):
+        return await self.request('GET', url)
+
+    async def request(self, method, url, data=None, on_request=None):
         public_url(url)
         async with self.sem:
             for attempt in range(3):
@@ -32,18 +35,29 @@ class Fetcher:
                         await asyncio.sleep(max(0, self.next_at - time.monotonic()))
                         self.next_at = time.monotonic() + max(.25, float(os.getenv('SCRAPER_INTERVAL_SECONDS', '.5')))
                     self.requests += 1
-                    async with self.client.stream('GET', url) as response:
+                    if on_request:
+                        on_request()
+                    async with self.client.stream(method, url, data=data,
+                            headers={'X-Requested-With': 'XMLHttpRequest'} if method == 'POST' else None) as response:
                         response.raise_for_status()
-                        data = bytearray()
+                        body_bytes = bytearray()
                         async for chunk in response.aiter_bytes():
-                            data.extend(chunk)
-                            if len(data) > 8 * 1024 * 1024:
+                            body_bytes.extend(chunk)
+                            if len(body_bytes) > 8 * 1024 * 1024:
                                 raise ValueError('Source page exceeds 8 MiB')
-                        return data.decode('utf-8')
+                        return body_bytes.decode('utf-8')
                 except (httpx.HTTPError, UnicodeError) as exc:
+                    if isinstance(exc, httpx.HTTPStatusError) and exc.response.status_code not in (408, 429, 500, 502, 503, 504):
+                        raise
                     if attempt == 2: raise
                     log.warning('Retry %s (%s)', url, type(exc).__name__)
-                    await asyncio.sleep(2 ** attempt)
+                    delay = 2 ** attempt
+                    if isinstance(exc, httpx.HTTPStatusError) and exc.response.status_code == 429:
+                        try:
+                            delay = max(delay, min(30, float(exc.response.headers.get('Retry-After', '0'))))
+                        except ValueError:
+                            pass
+                    await asyncio.sleep(delay)
 
     async def close(self):
         await self.client.aclose()
@@ -58,12 +72,14 @@ class Synchronizer:
                           productsParsed=0, productsAdded=0, productsUpdated=0, productsUnchanged=0,
                           promotionsDetected=0, imagesProcessed=0, errors=0,
                           ageRestrictedPages=0, ageRestrictedCards=0)
+        from .search_client import search_metrics
+        self.stats.update(search_metrics())
 
     def category_for(self, url):
         matches = [c for c in self.categories if url.startswith(c['source_url'])]
         return max(matches, key=lambda c: len(c['source_url']))['id'] if matches else None
 
-    async def scope(self, url, category=None, collection=None, first=None):
+    async def scope(self, url, category=None, collection=None, first=None, only_ids=None):
         visited, seen, signatures = set(), set(), set()
         promotion = None
         restricted_scope = False
@@ -91,7 +107,19 @@ class Synchronizer:
             self.stats['imagesProcessed'] += sum(p['thumbnail_url'] is not None for p in items)
             self.stats['promotionsDetected'] += counts['promotionalProductsDetected']
             with session() as db, writer(db) as state:
+                existing_by_source = {p.source_product_id: p for p in db.scalars(select(Product).where(
+                    Product.source_product_id.in_([item['source_product_id'] for item in items])))}
                 for item in items:
+                    if only_ids is not None and item['source_product_id'] not in only_ids:
+                        continue
+                    existing = existing_by_source.get(item['source_product_id'])
+                    if existing is not None:
+                        item['id'] = existing.id
+                    if only_ids is not None and existing is not None and (existing.promotion_start or existing.promotion_end):
+                        # A category page is not authoritative for campaign dates.
+                        for key in ('price', 'old_price', 'promo_price', 'discount_percent',
+                                    'promotion_state', 'promotion_start', 'promotion_end'):
+                            item.pop(key, None)
                     item['category_id'] = self.category_for(item['product_url']) or category
                     # On category cards an unknown end date is a current observation.
                     # On Mega cards a known interval is retained and evaluated by the phone.
@@ -102,7 +130,7 @@ class Synchronizer:
                     self.stats['products' + result.title()] += 1
                     seen.add(item['id'])
             url = None if counts['ageRestrictedPage'] else next_page(source, url)
-        if restricted_scope:
+        if restricted_scope or only_ids is not None:
             # Visible rows are saved, but missing rows are not confirmed absent.
             # Preserve existing collection membership and inactivity counters.
             return seen
@@ -135,7 +163,7 @@ class Synchronizer:
                     after = rows[-1].id
         return seen
 
-    async def run(self):
+    async def run(self, selection=None):
         started = time.monotonic()
         # Session advisory locks survive statement commits. Keep this dedicated
         # connection out of a transaction while HTTP requests and page writes run;
@@ -153,6 +181,12 @@ class Synchronizer:
                     db.flush()
                     run_id = run.id
                 try:
+                    if selection is not None:
+                        from .data_source import LinellaDataSource
+                        with session() as db:
+                            self.categories = [dict(id=c.id, parent_id=c.parent_id, source_url=c.source_url) for c in db.scalars(select(Category))]
+                        await LinellaDataSource(self).quick(**selection)
+                        return
                     source = await self.fetcher.get(BASE+'toate-categoriile/')
                     self.categories = parse_categories(source)
                     with session() as db, writer(db) as state:
@@ -168,6 +202,15 @@ class Synchronizer:
                                 self.stats['errors'] += 1
                                 log.exception('Category scope failed: %s', c['id'])
                     await asyncio.gather(*(one(c) for c in self.categories if c['parent_id'] is None))
+                    from .data_source import LinellaDataSource, configured_selections
+                    data_source = LinellaDataSource(self)
+                    if data_source.enabled:
+                        for selection in configured_selections():
+                            try:
+                                await data_source.quick(**selection)
+                            except Exception:
+                                self.stats['errors'] += 1
+                                log.exception('Selective enrichment and fallback failed')
                     for name, route in [('best', 'oferte-avantajoase/'), ('mega', 'mega-oferta/')]:
                         try: await self.scope(BASE+route, collection=name)
                         except Exception:
@@ -180,9 +223,9 @@ class Synchronizer:
                     self.stats.update(totalRequests=self.fetcher.requests, durationMs=int((time.monotonic()-started)*1000))
                     with session() as db, db.begin():
                         run = db.get(SyncRun, run_id)
-                        run.finished_at, run.status, run.stats = now(), 'partial' if self.stats['errors'] or self.stats['ageRestrictedPages'] else 'complete', self.stats
+                        run.finished_at, run.status, run.stats = now(), 'partial' if self.stats['errors'] or self.stats['ageRestrictedPages'] or self.stats['searchPromotionConflicts'] else 'complete', self.stats
                     if self.stats['ageRestrictedPages']:
                         log.warning('PARTIAL CATALOG: age-restricted content was not imported; previous memberships preserved')
-                    log.info('SyncRun %s %s', run_id, self.stats)
+                    log.info('SyncRun %s %s', run_id, {k: v for k, v in self.stats.items() if k != 'searchCommercialIndicators'})
             finally:
                 lock.execute(text('SELECT pg_advisory_unlock(37012026)'))

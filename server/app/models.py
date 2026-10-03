@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from decimal import Decimal
 from uuid import uuid4
 from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Integer, Numeric, String, Text, Index
 from sqlalchemy.dialects.postgresql import JSONB
@@ -40,10 +41,10 @@ class Product(Base):
     name: Mapped[str] = mapped_column(Text)
     brand: Mapped[str | None] = mapped_column(Text)
     quantity: Mapped[str | None] = mapped_column(Text)
-    price: Mapped[float | None] = mapped_column(Numeric(12, 2))
-    old_price: Mapped[float | None] = mapped_column(Numeric(12, 2))
-    promo_price: Mapped[float | None] = mapped_column(Numeric(12, 2))
-    discount_percent: Mapped[float | None] = mapped_column(Numeric(6, 2))
+    price: Mapped[Decimal | None] = mapped_column(Numeric(12, 2))
+    old_price: Mapped[Decimal | None] = mapped_column(Numeric(12, 2))
+    promo_price: Mapped[Decimal | None] = mapped_column(Numeric(12, 2))
+    discount_percent: Mapped[Decimal | None] = mapped_column(Numeric(6, 2))
     promotion_state: Mapped[str] = mapped_column(String, default='none')
     promotion_start: Mapped[str | None] = mapped_column(String)
     promotion_end: Mapped[str | None] = mapped_column(String)
