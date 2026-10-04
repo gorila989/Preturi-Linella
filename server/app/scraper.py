@@ -173,8 +173,23 @@ class Synchronizer:
                     seen.add(item['id'])
             url = None if counts['ageRestrictedPage'] else next_page(source, url)
         if restricted_scope or only_ids is not None:
+            if restricted_scope and only_ids is None and collection == 'best' and seen:
+                # A restricted card does not invalidate visible offers. Publish an
+                # additive snapshot: missing members cannot be considered removed.
+                # Keep dated Mega campaigns on their existing complete-scope path.
+                with session() as db, writer(db) as state:
+                    previous = db.get(SpecialCollection, collection)
+                    linked = set(db.scalars(select(SpecialCollectionProduct.product_id).where(
+                        SpecialCollectionProduct.collection_id == collection)))
+                    data = dict(previous.data) if previous else dict(
+                        startDateTime=None, endDateTime=None)
+                    members = seen | linked | set(data.get('productIds', []))
+                    data.update(type=collection, name='Cele mai bune oferte', productIds=sorted(members))
+                    put_document(db, state, SpecialCollection, 'collection', collection, data)
+                    db.add_all([SpecialCollectionProduct(collection_id=collection, product_id=p)
+                                for p in members - linked])
             # Visible rows are saved, but missing rows are not confirmed absent.
-            # Preserve existing collection membership and inactivity counters.
+            # Preserve existing memberships and inactivity counters.
             return seen
         if collection:
             with session() as db, writer(db) as state:
