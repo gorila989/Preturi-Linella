@@ -1,0 +1,40 @@
+name: Completeaza SKU Linella
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 'Maximum products without SKU (1-1000)'
+        default: '100'
+        type: string
+      after:
+        description: 'Resume after product ID from previous result; empty for start'
+        default: ''
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: linella-catalog-import
+  cancel-in-progress: false
+jobs:
+  sku:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: server
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12.10'
+      - run: python -m pip install -r requirements.lock
+      - name: Complete only missing SKU identifiers
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SKU_LIMIT: ${{ inputs.limit }}
+          SKU_AFTER: ${{ inputs.after }}
+          PYTHONUNBUFFERED: '1'
+        run: python -m app.cli enrich-skus --limit "$SKU_LIMIT" --after "$SKU_AFTER"
