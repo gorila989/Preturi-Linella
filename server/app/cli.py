@@ -46,6 +46,9 @@ def main():
     parser = argparse.ArgumentParser()
     commands = parser.add_subparsers(dest='command', required=True)
     commands.add_parser('sync-linella')
+    diagnostics = commands.add_parser('diagnose-skus', help='Read-only SKU counts; no credentials printed')
+    diagnostics.add_argument('--after', default='')
+    diagnostics.add_argument('--render-url', default='')
     sku = commands.add_parser('enrich-skus', help='Add verified SKUs to existing products only')
     sku.add_argument('--limit', type=int, default=100)
     sku.add_argument('--after', default='', help='Resume after the last reported existing product ID')
@@ -62,7 +65,24 @@ def main():
     match.add_argument('product_id')
     args = parser.parse_args()
     if args.command == 'sync-linella': asyncio.run(sync())
-    elif args.command == 'enrich-skus': asyncio.run(sku_batch(args.limit, args.after))
+    elif args.command == 'diagnose-skus':
+        from .sku_diagnostics import diagnose_skus, compare_render
+        try:
+            result = diagnose_skus(args.after)
+            if args.render_url: compare_render(result, args.render_url)
+        except Exception:
+            print(json.dumps(dict(database='unavailable', reason='Database diagnostics failed; check connection and schema privately')))
+            raise SystemExit(1) from None
+        print('database connected')
+        print(json.dumps(result, ensure_ascii=False))
+        if result['reason'] in ('empty_catalog', 'invalid_after', 'missing_products_before_cursor') or result.get('render_catalog_matches') is False:
+            raise SystemExit(1)
+    elif args.command == 'enrich-skus':
+        try:
+            asyncio.run(sku_batch(args.limit, args.after))
+        except Exception:
+            print(json.dumps(dict(error='SKU batch failed; check diagnostic output. Connection details suppressed.')))
+            raise SystemExit(1) from None
     elif args.command == 'sync-selected':
         asyncio.run(sync(dict(query=args.query, category=args.category, source_ids=args.source_ids)))
     elif args.command == 'stock': asyncio.run(stock(args.product_id))

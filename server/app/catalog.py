@@ -4,6 +4,7 @@ from datetime import datetime
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from .models import CatalogState, Category, Product, ProductChange, now
+from .sku_diagnostics import blank_sku
 
 
 def camel(name):
@@ -42,6 +43,8 @@ def upsert(db, state, model, data, kind):
     values = dict(data)
     if isinstance(existing, Product):
         for key in ('source_product_id', 'sku', 'barcode'):
+            if key == 'sku' and blank_sku(existing.sku):
+                continue  # A blank SKU is missing, not a verified identifier.
             if values.get(key) is not None and getattr(existing,key) not in (None,values[key]):
                 raise ValueError(f'Conflicting verified {key} for {existing.id}')
     # Unknown source identifiers cannot erase safely imported identifiers.

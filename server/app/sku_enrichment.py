@@ -6,6 +6,7 @@ from sqlalchemy import select, text
 from .db import session, engine
 from .models import Product
 from .catalog import writer, upsert
+from .sku_diagnostics import missing_sku, blank_sku
 
 log = logging.getLogger('linella')
 
@@ -42,7 +43,9 @@ async def enrich_skus(fetcher, limit=100, after=''):
             raise RuntimeError('Another catalog sync is running')
         try:
             with session() as db:
-                products = db.scalars(select(Product).where(Product.sku.is_(None), Product.id > after)
+                if after and db.get(Product, after) is None:
+                    raise ValueError('Unknown after product ID; use the exact previous result or an empty cursor')
+                products = db.scalars(select(Product).where(missing_sku(), Product.id > after)
                                       .order_by(Product.id).limit(limit)).all()
             for p in products:
                 counts['checked'] += 1
@@ -57,7 +60,7 @@ async def enrich_skus(fetcher, limit=100, after=''):
                         if current is None or current.source_product_id != p.source_product_id:
                             raise ValueError('Product identity changed during enrichment')
                         other = db.scalar(select(Product.id).where(Product.sku == sku, Product.id != p.id))
-                        if other or current.sku not in (None, sku):
+                        if other or (not blank_sku(current.sku) and current.sku != sku):
                             counts['conflicts'] += 1
                             log.warning('SKU conflict for existing product %s; identifiers preserved', p.id)
                             continue
