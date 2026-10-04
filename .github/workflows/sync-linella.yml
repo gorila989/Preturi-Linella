@@ -76,3 +76,4 @@ jobs:
               ;;
             *) echo '::error::Invalid run mode.'; exit 1 ;;
           esac
+          python -m app.cli diagnose-skus

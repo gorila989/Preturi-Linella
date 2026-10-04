@@ -3,8 +3,8 @@ on:
   workflow_dispatch:
     inputs:
       limit:
-        description: 'Maximum products without SKU (1-1000)'
-        default: '100'
+        description: 'Diagnostic test only: maximum 10 products (1-10)'
+        default: '10'
         type: string
       after:
         description: 'Resume after product ID from previous result; empty for start'
@@ -37,4 +37,10 @@ jobs:
           SKU_LIMIT: ${{ inputs.limit }}
           SKU_AFTER: ${{ inputs.after }}
           PYTHONUNBUFFERED: '1'
-        run: python -m app.cli enrich-skus --limit "$SKU_LIMIT" --after "$SKU_AFTER"
+        run: |
+          case "$SKU_LIMIT" in
+            [1-9]|10) ;;
+            *) echo '::error::Diagnostic workflow permits only 1-10 products.'; exit 1 ;;
+          esac
+          python -m app.cli diagnose-skus --after "$SKU_AFTER" --render-url https://preturi-linella.onrender.com
+          python -m app.cli enrich-skus --limit "$SKU_LIMIT" --after "$SKU_AFTER"
