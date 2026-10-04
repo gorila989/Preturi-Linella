@@ -41,17 +41,20 @@ def upsert(db, state, model, data, kind):
     existing = db.get(model, data['id'])
     values = dict(data)
     if isinstance(existing, Product):
-        for key in ('sku', 'barcode'):
+        for key in ('source_product_id', 'sku', 'barcode'):
             if values.get(key) is not None and getattr(existing,key) not in (None,values[key]):
                 raise ValueError(f'Conflicting verified {key} for {existing.id}')
     # Unknown source identifiers cannot erase safely imported identifiers.
-    for key in ('sku', 'barcode', 'category_id', 'brand'):
+    for key in ('source_product_id', 'sku', 'barcode', 'category_id', 'brand'):
         if values.get(key) is None and existing is not None:
             values.pop(key, None)
     def equal(key, value):
         old = getattr(existing, key)
         return old == (Decimal(str(value)) if isinstance(old, Decimal) and value is not None else value)
     if existing is not None and all(equal(k, v) for k, v in values.items()):
+        if isinstance(existing, Product):
+            from .identifier_matching import reconcile_product
+            reconcile_product(db, state, existing)
         return 'unchanged'
     if existing is None:
         existing = model(**values)
@@ -64,6 +67,9 @@ def upsert(db, state, model, data, kind):
     db.flush()
     existing.version = publish(db, state, kind, existing.id, payload(existing))
     db.flush()
+    if isinstance(existing, Product):
+        from .identifier_matching import reconcile_product
+        reconcile_product(db, state, existing)
     return status
 
 

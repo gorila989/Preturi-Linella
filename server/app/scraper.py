@@ -67,6 +67,8 @@ class Synchronizer:
     def __init__(self, fetcher):
         self.fetcher = fetcher
         self.categories = []
+        self.enrich_sku = False  # Enabled by run(); standalone parsing scopes keep their contract.
+        self.sku_attempted = set()
         self.stats = dict(categoriesProcessed=0, pagesDownloaded=0, productDetailPagesDownloaded=0,
                           categoryPagesDownloaded=0,
                           productsParsed=0, productsAdded=0, productsUpdated=0, productsUnchanged=0,
@@ -74,6 +76,44 @@ class Synchronizer:
                           ageRestrictedPages=0, ageRestrictedCards=0)
         from .search_client import search_metrics
         self.stats.update(search_metrics())
+        self.stats.update(skusExtracted=0, skuUnavailable=0, skuErrors=0, skuConflicts=0)
+
+    async def complete_skus(self, items):
+        if not self.enrich_sku:
+            return
+        from .sku_enrichment import detail_sku
+        with session() as db:
+            existing = {p.source_product_id: p.sku for p in db.scalars(select(Product).where(
+                Product.source_product_id.in_([p['source_product_id'] for p in items])))}
+        async def one(item):
+            sid = item['source_product_id']
+            if item.get('sku') or existing.get(sid) or sid in self.sku_attempted:
+                return
+            self.sku_attempted.add(sid)
+            self.stats['productDetailPagesDownloaded'] += 1
+            try:
+                sku = detail_sku(await self.fetcher.get(item['product_url']), sid)
+                if sku:
+                    item['sku'] = sku
+                    self.stats['skusExtracted'] += 1
+                else:
+                    self.stats['skuUnavailable'] += 1
+            except Exception as exc:
+                self.stats['skuErrors'] += 1
+                log.warning('SKU unavailable for %s (%s); catalog data preserved', sid, type(exc).__name__)
+        # At most one listing page in memory; shared Fetcher enforces concurrency/rate.
+        await asyncio.gather(*(one(item) for item in items))
+
+    def protect_sku(self, db, item):
+        sku = item.get('sku')
+        if not sku:
+            return
+        current = db.get(Product, item['id'])
+        other = db.scalar(select(Product.id).where(Product.sku == sku, Product.id != item['id']))
+        if other or (current is not None and current.sku not in (None, sku)):
+            item.pop('sku', None)
+            self.stats['skuConflicts'] += 1
+            log.warning('Conflicting SKU for %s; existing identifiers preserved', item['id'])
 
     def category_for(self, url):
         matches = [c for c in self.categories if url.startswith(c['source_url'])]
@@ -106,6 +146,7 @@ class Synchronizer:
             self.stats['productsParsed'] += len(items)
             self.stats['imagesProcessed'] += sum(p['thumbnail_url'] is not None for p in items)
             self.stats['promotionsDetected'] += counts['promotionalProductsDetected']
+            await self.complete_skus([item for item in items if only_ids is None or item['source_product_id'] in only_ids])
             with session() as db, writer(db) as state:
                 existing_by_source = {p.source_product_id: p for p in db.scalars(select(Product).where(
                     Product.source_product_id.in_([item['source_product_id'] for item in items])))}
@@ -126,6 +167,7 @@ class Synchronizer:
                     if promotion and item['promotion_state'] == 'observed':
                         item.update(promotion_state='dated', promotion_start=promotion['startDateTime'],
                                     promotion_end=promotion['endDateTime'])
+                    self.protect_sku(db, item)
                     result = upsert(db, state, Product, item, 'product')
                     self.stats['products' + result.title()] += 1
                     seen.add(item['id'])
@@ -164,6 +206,7 @@ class Synchronizer:
         return seen
 
     async def run(self, selection=None):
+        self.enrich_sku = True
         started = time.monotonic()
         # Session advisory locks survive statement commits. Keep this dedicated
         # connection out of a transaction while HTTP requests and page writes run;
@@ -186,6 +229,8 @@ class Synchronizer:
                         with session() as db:
                             self.categories = [dict(id=c.id, parent_id=c.parent_id, source_url=c.source_url) for c in db.scalars(select(Category))]
                         await LinellaDataSource(self).quick(**selection)
+                        from .identifier_matching import reconcile_pending
+                        reconcile_pending()
                         return
                     source = await self.fetcher.get(BASE+'toate-categoriile/')
                     self.categories = parse_categories(source)
@@ -216,6 +261,8 @@ class Synchronizer:
                         except Exception:
                             self.stats['errors'] += 1
                             log.exception('Collection scope failed: %s', name)
+                    from .identifier_matching import reconcile_pending
+                    reconcile_pending()
                 except Exception:
                     self.stats['errors'] += 1
                     raise
@@ -223,7 +270,7 @@ class Synchronizer:
                     self.stats.update(totalRequests=self.fetcher.requests, durationMs=int((time.monotonic()-started)*1000))
                     with session() as db, db.begin():
                         run = db.get(SyncRun, run_id)
-                        run.finished_at, run.status, run.stats = now(), 'partial' if self.stats['errors'] or self.stats['ageRestrictedPages'] or self.stats['searchPromotionConflicts'] else 'complete', self.stats
+                        run.finished_at, run.status, run.stats = now(), 'partial' if any(self.stats[k] for k in ('errors', 'ageRestrictedPages', 'searchPromotionConflicts', 'skuErrors', 'skuUnavailable', 'skuConflicts')) else 'complete', self.stats
                     if self.stats['ageRestrictedPages']:
                         log.warning('PARTIAL CATALOG: age-restricted content was not imported; previous memberships preserved')
                     log.info('SyncRun %s %s', run_id, {k: v for k, v in self.stats.items() if k != 'searchCommercialIndicators'})

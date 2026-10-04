@@ -79,6 +79,10 @@ class LinellaDataSource:
             # One category fallback, never a detail request per product. Keep
             # discovered 225px URLs; do not manufacture alternate image URLs.
             await html(True)
+        sku_items = [dict(source_product_id=p.product_id, product_url=p.url) for p in products
+                     if p.product_id in known and (targets is None or p.product_id in targets)]
+        await self.sync.complete_skus(sku_items)
+        skus = {p['source_product_id']: p['sku'] for p in sku_items if p.get('sku')}
         with session() as db, writer(db) as state:
             known = {p.source_product_id: p for p in db.scalars(select(Product).where(
                 Product.source_product_id.in_(returned_ids), Product.category_id.in_(descendants)))}
@@ -91,6 +95,9 @@ class LinellaDataSource:
                 if targets is not None and product.product_id not in targets:
                     continue
                 patch = normalize_product(product, existing, self.sync.category_for(product.url), self.sync.stats)
+                if product.product_id in skus:
+                    patch['sku'] = skus[product.product_id]
+                    self.sync.protect_sku(db, patch)
                 result = upsert(db, state, Product, patch, 'product')
                 self.sync.stats['products'+result.title()] += 1
                 self.sync.stats['promotionsDetected'] += int(product.is_discounted)

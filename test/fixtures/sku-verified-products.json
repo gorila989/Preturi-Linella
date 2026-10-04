@@ -1,0 +1,79 @@
+[
+  {
+    "sku": "279905",
+    "barcode": "4860019002077",
+    "excelRows": 1,
+    "excelBarcodes": [
+      "4860019002077"
+    ],
+    "searchResults": 1,
+    "verified": [
+      {
+        "sourceProductId": "29770",
+        "sku": "279905",
+        "name": "Apa minerala 1.25l BORJOMI",
+        "url": "https://linella.md/bauturi/apa-minerala/apa-minerala-1-25l-borjomi/",
+        "price": "44.99",
+        "image": "https://linella.md/images/thumbnails/400/400/detailed/34/5c4d066d9bf03d7c43dea22868dd9921.jpg"
+      }
+    ]
+  },
+  {
+    "sku": "153029",
+    "barcode": "5942219111182",
+    "excelRows": 1,
+    "excelBarcodes": [
+      "5942219111182"
+    ],
+    "searchResults": 1,
+    "verified": [
+      {
+        "sourceProductId": "29712",
+        "sku": "153029",
+        "name": "Apa minerala carbo 0.75l st. BORSEC",
+        "url": "https://linella.md/bauturi/apa-minerala/apa-minerala-carbo-0-75l-st-borsec/",
+        "price": "24.19",
+        "image": "https://linella.md/images/thumbnails/400/400/detailed/34/a73112d7401a8a5b67ced09c8aad80cb.jpg"
+      }
+    ]
+  },
+  {
+    "sku": "442891",
+    "barcode": "4840811002031",
+    "excelRows": 1,
+    "excelBarcodes": [
+      "4840811002031"
+    ],
+    "searchResults": 1,
+    "verified": [
+      {
+        "sourceProductId": "47296",
+        "sku": "442891",
+        "name": "Seminte de de floarea soarelui pestrite 90g BANZAI",
+        "url": "https://linella.md/snackuri-si-nuci/seminte-floarea-soarelui-dovleac/seminte-de-de-floarea-soarelui-pestrite-90g-banzai/",
+        "price": "15.49",
+        "image": "https://linella.md/images/thumbnails/400/400/detailed/52/b97a3823d842e25a346fc6e5685afc3f.jpg"
+      }
+    ]
+  },
+  {
+    "sku": "2003985",
+    "barcode": "4840267009547",
+    "excelRows": 2,
+    "excelBarcodes": [
+      "4840267009547",
+      "4840472014350"
+    ],
+    "searchResults": 1,
+    "verified": [
+      {
+        "sourceProductId": "51042",
+        "sku": "2003985",
+        "name": "RADACINI VERO DI MOSCATO Vin roze dulce 0.75l",
+        "url": "https://linella.md/alcool/vin/radacini-vero-di-moscato-vin-roze-dulce-0-75l/",
+        "price": "129.99",
+        "image": "https://linella.md/images/thumbnails/400/400/detailed/60/c640ddf5fe232a1c7069ae6a77c7483d.jpg"
+      }
+    ]
+  }
+]

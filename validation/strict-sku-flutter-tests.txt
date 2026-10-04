@@ -1,0 +1,72 @@
+00:00 +0: loading C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/api_sync_test.dart
+00:00 +0: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/api_sync_test.dart: API SKU update joins earlier Excel barcode and scanner preserves product
+00:00 +1: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:00 +2: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:00 +3: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:00 +4: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:00 +5: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:00 +6: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:00 +7: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:00 +8: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:00 +9: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:00 +10: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:00 +11: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:01 +12: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:01 +13: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:01 +14: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:01 +15: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:01 +16: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:01 +17: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:01 +18: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:01 +19: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:01 +20: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:01 +21: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:01 +22: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:01 +23: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:01 +24: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:02 +25: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:02 +26: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:02 +27: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:02 +28: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:02 +29: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:02 +30: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:02 +31: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:02 +32: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:02 +33: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:03 +34: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:03 +35: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:03 +36: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:03 +37: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:03 +38: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:03 +39: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:03 +40: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:03 +41: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:03 +42: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:03 +43: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:04 +44: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:04 +45: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:04 +46: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/performance_test.dart: 50000 products: indexed barcode, SKU, partial name, pagination
+00:04 +47: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/widget_test.dart: Home starts in Romanian and category tree expands to third level
+00:05 +48: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/widget_test.dart: Home starts in Romanian and category tree expands to third level
+00:05 +49: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/widget_test.dart: Home starts in Romanian and category tree expands to third level
+00:05 +50: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/widget_test.dart: Home starts in Romanian and category tree expands to third level
+00:05 +51: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/core_test.dart: selected sync uses bounded targets, stores data before images, incremental skip
+00:05 +52: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/core_test.dart: selected sync uses bounded targets, stores data before images, incremental skip
+00:05 +53: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/core_test.dart: selected sync uses bounded targets, stores data before images, incremental skip
+00:05 +54: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/core_test.dart: selected sync uses bounded targets, stores data before images, incremental skip
+00:05 +55: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/core_test.dart: selected sync uses bounded targets, stores data before images, incremental skip
+00:05 +56: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/core_test.dart: selected sync uses bounded targets, stores data before images, incremental skip
+00:05 +57: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/core_test.dart: selected sync uses bounded targets, stores data before images, incremental skip
+00:05 +58: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/core_test.dart: selected sync uses bounded targets, stores data before images, incremental skip
+00:05 +59: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/core_test.dart: selected sync uses bounded targets, stores data before images, incremental skip
+00:05 +60: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/core_test.dart: selected sync uses bounded targets, stores data before images, incremental skip
+00:05 +61: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/core_test.dart: selected sync uses bounded targets, stores data before images, incremental skip
+00:05 +62: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/core_test.dart: selected sync uses bounded targets, stores data before images, incremental skip
+00:05 +63: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/core_test.dart: selected sync uses bounded targets, stores data before images, incremental skip
+00:05 +64: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/update_test.dart: Real cards paginate, repeat sync preserves storage and IDs; offline reopen
+00:07 +65: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/core_test.dart: full sync uses bounded targets, stores data before images, incremental skip
+00:07 +66: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/core_test.dart: full sync uses bounded targets, stores data before images, incremental skip
+00:07 +67: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/core_test.dart: Cancellation and failed source retain prior rows
+00:07 +68: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/core_test.dart: Conditional HTTP request honors ETag and 304 body
+00:07 +69: C:/Users/timbu/Documents/Codex/2026-09-30/files-pasted-by-the-user-vreau/outputs/cauta_pret/test/core_test.dart: Existing image never fetched again
+00:07 +70: All tests passed!

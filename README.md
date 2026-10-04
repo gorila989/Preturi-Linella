@@ -78,3 +78,5 @@ python -m app.cli associate-identifier ID_RAND linella:ID_PRODUS
 ```
 
 Acestea sunt comenzi server cu acces administrativ la PostgreSQL, nu endpointuri HTTP accesibile telefoanelor. Configurarea producției și URL-ului în aplicație este descrisă în [DEPLOY_RENDER.md](DEPLOY_RENDER.md).
+
+Actualizare SKU și barcode 2.0.3: [instrucțiuni și verificări](SKU_EXACT_2.0.3.md).

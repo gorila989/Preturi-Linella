@@ -2,6 +2,7 @@
 import hashlib
 import json
 import re
+from datetime import datetime, timezone
 from collections import defaultdict
 from pathlib import Path
 from openpyxl import load_workbook
@@ -21,6 +22,7 @@ def identifier(cell):
         if re.fullmatch('0+', cell.number_format): result = result.zfill(len(cell.number_format))
         return result
     value = str(value).strip()
+    value = re.sub(r'^(\d+)\.0+$', r'\1', value)
     if re.search(r'[\x00-\x1f]|^\d+(?:\.\d+)?[eE][+-]?\d+$', value): raise ValueError('Invalid identifier text')
     return value
 
@@ -54,10 +56,11 @@ def import_file(path):
         if 'errorMessage' not in row:
             by_sku[row['sku']].add(row['barcode'])
             by_barcode[row['barcode']].add(row['sku'])
-    counts = dict(read=0, matched=0, pending=0, conflicts=0, invalid=0, duplicate=0)
+    counts = dict(read=0, valid=0, matched=0, alreadyMatched=0, pending=0, conflicts=0, invalid=0, duplicate=0, errors=0)
     for row in read_rows(path):
         counts['read'] += 1
         status = 'invalid' if 'errorMessage' in row else 'pending'
+        if status != 'invalid': counts['valid'] += 1
         sku, barcode = row.get('sku'), row.get('barcode')
         if status != 'invalid' and (len(by_sku[sku]) > 1 or len(by_barcode[barcode]) > 1): status = 'needsReview'
         identity = json.dumps(row if status == 'invalid' else [sku, barcode], sort_keys=True)
@@ -65,20 +68,39 @@ def import_file(path):
         with session() as db, writer(db) as state:
             prior = db.get(PendingProductIdentifier, key)
             if prior:
+                if prior.status == 'pending':
+                    products = db.scalars(select(Product).where(Product.sku == prior.sku)).all()
+                    if len(products) == 1:
+                        from .identifier_matching import reconcile_product
+                        reconcile_product(db, state, products[0])
                 counts['duplicate'] += 1
+                counts[{'matched': 'alreadyMatched', 'needsReview': 'conflicts'}.get(prior.status, prior.status)] += 1
                 continue
-            matches = db.scalars(select(Product).where(or_(Product.sku == sku, Product.barcode == barcode))).all() if sku and barcode else []
+            related = db.scalars(select(PendingProductIdentifier).where(
+                or_(PendingProductIdentifier.sku == sku, PendingProductIdentifier.barcode == barcode),
+                PendingProductIdentifier.status != 'invalid')).all() if sku and barcode else []
+            if status == 'pending' and any(r.sku != sku or r.barcode != barcode or r.status == 'needsReview' for r in related):
+                status = 'needsReview'
+            matches = db.scalars(select(Product).where(Product.sku == sku)).all() if sku and barcode else []
+            barcode_owners = db.scalars(select(Product).where(Product.barcode == barcode)).all() if barcode else []
             matched = None
             if status == 'pending' and matches:
-                if len(matches) == 1 and matches[0].sku in (None, sku) and matches[0].barcode in (None, barcode):
+                if len(matches) == 1 and matches[0].barcode in (None, barcode) and all(p.id == matches[0].id for p in barcode_owners):
                     matched = matches[0].id
                     status = 'matched'
-                    upsert(db, state, Product, dict(id=matched, sku=sku, barcode=barcode), 'product')
+                    if matches[0].barcode == barcode:
+                        counts['alreadyMatched'] += 1
+                    else:
+                        counts['matched'] += 1
+                        upsert(db, state, Product, dict(id=matched, barcode=barcode), 'product')
                 else: status = 'needsReview'
+            elif status == 'pending' and barcode_owners:
+                status = 'needsReview'
+            row['importedAt'] = datetime.now(timezone.utc).isoformat()
             item = PendingProductIdentifier(id=key, sku=sku, barcode=barcode, status=status, product_id=matched, data=row)
             db.add(item)
             item.version = publish(db, state, 'identifier', key, {**row, 'id': key, 'status': status, 'matchedProductId': matched})
-            counts[{'needsReview':'conflicts'}.get(status, status)] += 1
+            if status != 'matched': counts[{'needsReview':'conflicts'}.get(status, status)] += 1
     return counts
 
 
@@ -93,6 +115,6 @@ def associate(identifier_id, product_id):
             or_(Product.sku == row.sku, Product.barcode == row.barcode))).first()
         if other or product.sku not in (None,row.sku) or product.barcode not in (None,row.barcode):
             raise ValueError('Identifier conflict: association refused')
-        upsert(db,state,Product,dict(id=product_id,sku=row.sku,barcode=row.barcode),'product')
         row.status,row.product_id='matched',product_id
+        upsert(db,state,Product,dict(id=product_id,sku=row.sku,barcode=row.barcode),'product')
         row.version=publish(db,state,'identifier',row.id,{**row.data,'id':row.id,'status':'matched','matchedProductId':product_id})
