@@ -24,7 +24,15 @@ class Fetcher:
         self.requests = 0
 
     async def get(self, url):
-        return await self.request('GET', url)
+        try:
+            return await self.request('GET', url)
+        except httpx.HTTPStatusError as exc:
+            # Public collection relocation verified on 2026-10-05. Keep the
+            # existing 'best' collection identity and refuse arbitrary redirects.
+            if (url == BASE+'oferte-avantajoase/' and exc.response.status_code in (301, 308)
+                    and exc.response.headers.get('location') == BASE+'preturi-mici-zi-de-zi/'):
+                return await self.request('GET', BASE+'preturi-mici-zi-de-zi/')
+            raise
 
     async def request(self, method, url, data=None, on_request=None):
         public_url(url)

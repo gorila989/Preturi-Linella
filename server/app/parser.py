@@ -33,6 +33,40 @@ def money(element):
         raise ValueError('Invalid price markup')
 
 
+def weight_prices(card, price, old):
+    """Normalize explicitly marked loose goods to lei/kg; never infer from name."""
+    nodes = card.select('.wp-product-pricing, [data-wp-price-kg]')
+    if not nodes:
+        if card.select_one('.wp-step-label, .wp-price-per-kg'):
+            raise ValueError('Weighted price metadata missing; previous data preserved')
+        return price, old, False
+    if len(nodes) != 1:
+        raise ValueError('Ambiguous weighted price metadata')
+    node = nodes[0]
+    def number(key):
+        raw = node.get(key, '')
+        if not re.fullmatch(r'\d{1,10}(?:\.\d{1,2})?', raw):
+            raise ValueError('Invalid weighted price metadata: ' + key)
+        value = Decimal(raw)
+        if value > Decimal('9999999999.99'):
+            raise ValueError('Weighted price overflow')
+        return value
+    kg, step, grams = (number(k) for k in ('data-wp-price-kg', 'data-wp-price-step', 'data-wp-step-g'))
+    if grams <= 0 or price is None or Decimal(str(price)) != step:
+        raise ValueError('Inconsistent weighted display price')
+    # Source step prices may be truncated by a cent. The explicit kg value
+    # remains authoritative; multiplying the rounded display loses precision.
+    if abs(kg * grams / 1000 - step) > Decimal('0.01'):
+        raise ValueError('Inconsistent weighted price units')
+    if old is not None:
+        unit = card.select_one('.wp-old-price-unit')
+        if unit is None or unit.get_text(' ', strip=True).lower() != 'per kg':
+            raise ValueError('Unknown weighted old-price unit; previous data preserved')
+        if Decimal(str(old)) < kg:
+            raise ValueError('Weighted old price is below current price')
+    return float(kg), old, True
+
+
 class SourceThumbnailStorage:
     """Public source URLs, no persistent files on Render's ephemeral disk.
 
@@ -76,6 +110,7 @@ def parse_products(source, category_id=None):
             raise ValueError('Missing source product ID')
         price = money(card.select_one('[id^="sec_discounted_price_"]'))
         old = money(card.select_one('[id^="sec_list_price_"]'))
+        price, old, weighted = weight_prices(card, price, old)
         discount = card.select_one('[id^="line_discount_value_"]')
         match = re.search(r'(\d+(?:[.,]\d+)?)', discount.get_text()) if discount else None
         percent = float(match[1].replace(',', '.')) if match else None
@@ -88,7 +123,7 @@ def parse_products(source, category_id=None):
         quantity = re.search(r'\b\d+(?:[.,]\d+)?\s*(?:kg|g|ml|l|buc)\b', name, re.I)
         products.append(dict(id=f'linella:{sid}', source_product_id=sid,
             name=name, sku=sku_node.get_text(strip=True) if sku_node else None,
-            quantity=quantity[0] if quantity else None, price=price, old_price=old,
+            quantity='1 kg' if weighted else quantity[0] if quantity else None, price=price, old_price=old,
             promo_price=price if observed else None, discount_percent=percent,
             promotion_state='observed' if observed else 'none', promotion_start=None, promotion_end=None,
             category_id=category_id, product_url=public_url(title['href']),
