@@ -3,7 +3,9 @@ import logging
 import os
 import time
 from datetime import datetime, timezone
+from urllib.parse import urlsplit, parse_qs
 import httpx
+from bs4 import BeautifulSoup
 from sqlalchemy import select, delete, text
 from .db import session, engine
 from .models import (Category, Product, Promotion, SpecialCollection, SpecialCollectionProduct,
@@ -22,19 +24,57 @@ class Fetcher:
         self.rate_lock = asyncio.Lock()
         self.next_at = 0.0
         self.requests = 0
+        self.age_lock = asyncio.Lock()
+        self.age_attempted = False
 
     async def get(self, url):
         try:
-            return await self.request('GET', url)
+            body = await self.request('GET', url)
         except httpx.HTTPStatusError as exc:
             # Public collection relocation verified on 2026-10-05. Keep the
             # existing 'best' collection identity and refuse arbitrary redirects.
             if (url == BASE+'oferte-avantajoase/' and exc.response.status_code in (301, 308)
                     and exc.response.headers.get('location') == BASE+'preturi-mici-zi-de-zi/'):
-                return await self.request('GET', BASE+'preturi-mici-zi-de-zi/')
-            raise
+                body = await self.request('GET', BASE+'preturi-mici-zi-de-zi/')
+            elif (os.getenv('LINELLA_AGE_CONFIRMED', '').lower() == 'true'
+                  and exc.response.status_code in (302, 303)):
+                destination = public_url(exc.response.headers.get('location', ''), url)
+                query = parse_qs(urlsplit(destination).query)
+                if (urlsplit(destination).path != '/index.php'
+                        or query.get('dispatch') != ['age_verification.verify']
+                        or query.get('type') != ['form']):
+                    raise
+                body = await self.request('GET', destination)
+            else:
+                raise
+        if os.getenv('LINELLA_AGE_CONFIRMED', '').lower() != 'true':
+            return body
+        doc = BeautifulSoup(body, 'lxml')
+        form = doc.select_one('form[name="age_verification"]')
+        if form is None:
+            return body
+        async with self.age_lock:
+            if not self.age_attempted:
+                # Opt-in attestation supplied by the adult operator. Submit the
+                # source's actual form; never forge a verification cookie.
+                if (form.get('method', '').lower() != 'post'
+                        or public_url(form.get('action', ''), url) != BASE
+                        or form.select_one('[name="dispatch[age_verification.verify]"]') is None):
+                    raise ValueError('Unrecognized age verification form')
+                from .linella_session import extract_security_hash
+                data = {n['name']: n.get('value', '') for n in form.select('input[name]')
+                        if n.get('name') in ('redirect_url', 'security_hash')}
+                if data.get('redirect_url'):
+                    public_url(data['redirect_url'])
+                data.update(age='18', security_hash=extract_security_hash(body))
+                data['dispatch[age_verification.verify]'] = ''
+                self.age_attempted = True
+                await self.request('POST', BASE, data=data, age_form=True)
+            # Concurrent requests can contain a gate fetched before the POST.
+            # Retry each original page once using the same HTTP session.
+            return await self.request('GET', url)
 
-    async def request(self, method, url, data=None, on_request=None):
+    async def request(self, method, url, data=None, on_request=None, age_form=False):
         public_url(url)
         async with self.sem:
             for attempt in range(3):
@@ -46,7 +86,10 @@ class Fetcher:
                     if on_request:
                         on_request()
                     async with self.client.stream(method, url, data=data,
-                            headers={'X-Requested-With': 'XMLHttpRequest'} if method == 'POST' else None) as response:
+                            headers={'X-Requested-With': 'XMLHttpRequest'} if method == 'POST' and not age_form else None) as response:
+                        if age_form and response.status_code in (302, 303):
+                            public_url(response.headers.get('location', ''), url)
+                            return ''
                         response.raise_for_status()
                         body_bytes = bytearray()
                         async for chunk in response.aiter_bytes():
