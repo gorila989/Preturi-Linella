@@ -127,7 +127,7 @@ class Synchronizer:
         matches = [c for c in self.categories if url.startswith(c['source_url'])]
         return max(matches, key=lambda c: len(c['source_url']))['id'] if matches else None
 
-    async def scope(self, url, category=None, collection=None, first=None, only_ids=None):
+    async def scope(self, url, category=None, collection=None, first=None, only_ids=None, confirm_absences=True):
         visited, seen, signatures = set(), set(), set()
         promotion = None
         restricted_scope = False
@@ -175,12 +175,37 @@ class Synchronizer:
                     if promotion and item['promotion_state'] == 'observed':
                         item.update(promotion_state='dated', promotion_start=promotion['startDateTime'],
                                     promotion_end=promotion['endDateTime'])
+                    if existing is not None and item.get('price') is None and item.get('quantity') == '1 kg':
+                        # Contact-for-price weighted cards cannot replace a known
+                        # price or relabel its unit without a new price observation.
+                        for key in ('price', 'old_price', 'promo_price', 'discount_percent',
+                                    'promotion_state', 'promotion_start', 'promotion_end', 'quantity'):
+                            item.pop(key, None)
                     self.protect_sku(db, item)
                     result = upsert(db, state, Product, item, 'product')
                     self.stats['products' + result.title()] += 1
                     seen.add(item['id'])
             url = None if counts['ageRestrictedPage'] else next_page(source, url)
         if restricted_scope or only_ids is not None:
+            if restricted_scope and only_ids is None and collection == 'mega' and promotion and seen:
+                # Publish a verified new period even when some cards are gated.
+                # Only merge members belonging to this same campaign: never
+                # carry last campaign's products into the new campaign.
+                with session() as db, writer(db) as state:
+                    previous = db.get(Promotion, promotion['id'])
+                    members = seen | set(previous.data.get('productIds', []) if previous else [])
+                    put_document(db, state, Promotion, 'promotion', promotion['id'],
+                                 {**promotion, 'productIds': sorted(members)})
+                    linked = set(db.scalars(select(ProductPromotion.product_id).where(
+                        ProductPromotion.promotion_id == promotion['id'])))
+                    db.add_all([ProductPromotion(promotion_id=promotion['id'], product_id=p)
+                                for p in members - linked])
+                    put_document(db, state, SpecialCollection, 'collection', collection,
+                                 {**promotion, 'productIds': sorted(members)})
+                    db.execute(delete(SpecialCollectionProduct).where(
+                        SpecialCollectionProduct.collection_id == collection))
+                    db.add_all([SpecialCollectionProduct(collection_id=collection, product_id=p)
+                                for p in members])
             if restricted_scope and only_ids is None and collection == 'best' and seen:
                 # A restricted card does not invalidate visible offers. Publish an
                 # additive snapshot: missing members cannot be considered removed.
@@ -211,7 +236,7 @@ class Synchronizer:
                     put_document(db, state, Promotion, 'promotion', promotion['id'], {**promotion, 'productIds': sorted(seen)})
                     db.execute(delete(ProductPromotion).where(ProductPromotion.promotion_id == promotion['id']))
                     db.add_all([ProductPromotion(promotion_id=promotion['id'], product_id=p) for p in seen])
-        if category and seen:
+        if category and seen and confirm_absences:
             # Only a successfully exhausted, non-empty scope may advance absences.
             # Use batches so even a 50k catalog is never materialized as ORM objects.
             ids = [c['id'] for c in self.categories if c['source_url'].startswith(BASE.rstrip('/') + category)]
@@ -264,12 +289,17 @@ class Synchronizer:
                     async def one(c):
                         async with gate:
                             try:
-                                await self.scope(c['source_url'], category=c['id'])
+                                await self.scope(c['source_url'], category=c['id'],
+                                                 confirm_absences=c['parent_id'] is None)
                                 self.stats['categoriesProcessed'] += 1
                             except Exception:
                                 self.stats['errors'] += 1
                                 log.exception('Category scope failed: %s', c['id'])
                     await asyncio.gather(*(one(c) for c in self.categories if c['parent_id'] is None))
+                    # Parent listings do not prove every subcategory is covered.
+                    # Inspect each discovered child too, without treating its
+                    # absence list as authoritative for the parent catalog.
+                    await asyncio.gather(*(one(c) for c in self.categories if c['parent_id'] is not None))
                     from .data_source import LinellaDataSource, configured_selections
                     data_source = LinellaDataSource(self)
                     if data_source.enabled:
