@@ -12,6 +12,10 @@ on:
         description: 'Enable supplemental Search API for this run'
         type: boolean
         default: false
+      age_confirmed:
+        description: 'I confirm I am at least 18 and authorize the official Linella age form'
+        type: boolean
+        default: false
       query:
         description: 'Selective mode only: concrete query, e.g. red bull'
         type: string
@@ -55,6 +59,7 @@ jobs:
           SCRAPER_CONCURRENCY: '4'
           SCRAPER_INTERVAL_SECONDS: '0.5'
           PYTHONUNBUFFERED: '1'
+          LINELLA_AGE_CONFIRMED: ${{ github.event.inputs.age_confirmed == 'true' && 'true' || vars.LINELLA_AGE_CONFIRMED || 'false' }}
           LINELLA_SEARCH_API_ENABLED: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.search_api || vars.LINELLA_SEARCH_API_ENABLED || 'false' }}
           LINELLA_SEARCH_SELECTIONS: ${{ vars.LINELLA_SEARCH_SELECTIONS || '[]' }}
           RUN_MODE: ${{ github.event.inputs.mode || 'full' }}
