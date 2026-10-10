@@ -175,6 +175,12 @@ class Synchronizer:
                     if promotion and item['promotion_state'] == 'observed':
                         item.update(promotion_state='dated', promotion_start=promotion['startDateTime'],
                                     promotion_end=promotion['endDateTime'])
+                    if existing is not None and item.get('price') is None and item.get('quantity') == '1 kg':
+                        # Contact-for-price weighted cards cannot replace a known
+                        # price or relabel its unit without a new price observation.
+                        for key in ('price', 'old_price', 'promo_price', 'discount_percent',
+                                    'promotion_state', 'promotion_start', 'promotion_end', 'quantity'):
+                            item.pop(key, None)
                     self.protect_sku(db, item)
                     result = upsert(db, state, Product, item, 'product')
                     self.stats['products' + result.title()] += 1

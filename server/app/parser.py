@@ -52,6 +52,11 @@ def weight_prices(card, price, old):
             raise ValueError('Weighted price overflow')
         return value
     kg, step, grams = (number(k) for k in ('data-wp-price-kg', 'data-wp-price-step', 'data-wp-step-g'))
+    # Linella emits zero metadata for an explicit contact-for-price card.
+    # These zeroes are placeholders, never an observed selling price.
+    if (grams > 0 and price is None and old is None and kg == step == 0
+            and card.select_one('.ty-no-price') is not None):
+        return None, None, True
     if grams <= 0 or price is None or Decimal(str(price)) != step:
         raise ValueError('Inconsistent weighted display price')
     # Source step prices may be truncated by a cent. The explicit kg value
