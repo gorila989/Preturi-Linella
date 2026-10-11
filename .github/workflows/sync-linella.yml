@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'Full HTML discovery or a bounded selective update'
+        description: 'Full catalog, selective update, or Mega Offer only'
         type: choice
-        options: [full, selective]
+        options: [full, selective, mega]
         default: full
       search_api:
         description: 'Enable supplemental Search API for this run'
@@ -72,6 +72,7 @@ jobs:
           fi
           case "$RUN_MODE" in
             full) python -m app.cli sync-linella ;;
+            mega) python -m app.cli sync-mega ;;
             selective)
               if [ -z "$SEARCH_QUERY" ] || [ -z "$SEARCH_CATEGORY" ]; then
                 echo '::error::Selective mode requires query and category.'
