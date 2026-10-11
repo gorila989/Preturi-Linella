@@ -3,7 +3,9 @@ import logging
 import os
 import time
 from datetime import datetime, timezone
+from urllib.parse import urlsplit, parse_qs
 import httpx
+from bs4 import BeautifulSoup
 from sqlalchemy import select, delete, text
 from .db import session, engine
 from .models import (Category, Product, Promotion, SpecialCollection, SpecialCollectionProduct,
@@ -22,19 +24,57 @@ class Fetcher:
         self.rate_lock = asyncio.Lock()
         self.next_at = 0.0
         self.requests = 0
+        self.age_lock = asyncio.Lock()
+        self.age_attempted = False
 
     async def get(self, url):
         try:
-            return await self.request('GET', url)
+            body = await self.request('GET', url)
         except httpx.HTTPStatusError as exc:
             # Public collection relocation verified on 2026-10-05. Keep the
             # existing 'best' collection identity and refuse arbitrary redirects.
             if (url == BASE+'oferte-avantajoase/' and exc.response.status_code in (301, 308)
                     and exc.response.headers.get('location') == BASE+'preturi-mici-zi-de-zi/'):
-                return await self.request('GET', BASE+'preturi-mici-zi-de-zi/')
-            raise
+                body = await self.request('GET', BASE+'preturi-mici-zi-de-zi/')
+            elif (os.getenv('LINELLA_AGE_CONFIRMED', '').lower() == 'true'
+                  and exc.response.status_code in (302, 303)):
+                destination = public_url(exc.response.headers.get('location', ''), url)
+                query = parse_qs(urlsplit(destination).query)
+                if (urlsplit(destination).path != '/index.php'
+                        or query.get('dispatch') != ['age_verification.verify']
+                        or query.get('type') != ['form']):
+                    raise
+                body = await self.request('GET', destination)
+            else:
+                raise
+        if os.getenv('LINELLA_AGE_CONFIRMED', '').lower() != 'true':
+            return body
+        doc = BeautifulSoup(body, 'lxml')
+        form = doc.select_one('form[name="age_verification"]')
+        if form is None:
+            return body
+        async with self.age_lock:
+            if not self.age_attempted:
+                # Opt-in attestation supplied by the adult operator. Submit the
+                # source's actual form; never forge a verification cookie.
+                if (form.get('method', '').lower() != 'post'
+                        or public_url(form.get('action', ''), url) != BASE
+                        or form.select_one('[name="dispatch[age_verification.verify]"]') is None):
+                    raise ValueError('Unrecognized age verification form')
+                from .linella_session import extract_security_hash
+                data = {n['name']: n.get('value', '') for n in form.select('input[name]')
+                        if n.get('name') in ('redirect_url', 'security_hash')}
+                if data.get('redirect_url'):
+                    public_url(data['redirect_url'])
+                data.update(age='18', security_hash=extract_security_hash(body))
+                data['dispatch[age_verification.verify]'] = ''
+                self.age_attempted = True
+                await self.request('POST', BASE, data=data, age_form=True)
+            # Concurrent requests can contain a gate fetched before the POST.
+            # Retry each original page once using the same HTTP session.
+            return await self.request('GET', url)
 
-    async def request(self, method, url, data=None, on_request=None):
+    async def request(self, method, url, data=None, on_request=None, age_form=False):
         public_url(url)
         async with self.sem:
             for attempt in range(3):
@@ -46,7 +86,10 @@ class Fetcher:
                     if on_request:
                         on_request()
                     async with self.client.stream(method, url, data=data,
-                            headers={'X-Requested-With': 'XMLHttpRequest'} if method == 'POST' else None) as response:
+                            headers={'X-Requested-With': 'XMLHttpRequest'} if method == 'POST' and not age_form else None) as response:
+                        if age_form and response.status_code in (302, 303):
+                            public_url(response.headers.get('location', ''), url)
+                            return ''
                         response.raise_for_status()
                         body_bytes = bytearray()
                         async for chunk in response.aiter_bytes():
@@ -127,7 +170,7 @@ class Synchronizer:
         matches = [c for c in self.categories if url.startswith(c['source_url'])]
         return max(matches, key=lambda c: len(c['source_url']))['id'] if matches else None
 
-    async def scope(self, url, category=None, collection=None, first=None, only_ids=None):
+    async def scope(self, url, category=None, collection=None, first=None, only_ids=None, confirm_absences=True):
         visited, seen, signatures = set(), set(), set()
         promotion = None
         restricted_scope = False
@@ -187,6 +230,25 @@ class Synchronizer:
                     seen.add(item['id'])
             url = None if counts['ageRestrictedPage'] else next_page(source, url)
         if restricted_scope or only_ids is not None:
+            if restricted_scope and only_ids is None and collection == 'mega' and promotion and seen:
+                # Publish a verified new period even when some cards are gated.
+                # Only merge members belonging to this same campaign: never
+                # carry last campaign's products into the new campaign.
+                with session() as db, writer(db) as state:
+                    previous = db.get(Promotion, promotion['id'])
+                    members = seen | set(previous.data.get('productIds', []) if previous else [])
+                    put_document(db, state, Promotion, 'promotion', promotion['id'],
+                                 {**promotion, 'productIds': sorted(members)})
+                    linked = set(db.scalars(select(ProductPromotion.product_id).where(
+                        ProductPromotion.promotion_id == promotion['id'])))
+                    db.add_all([ProductPromotion(promotion_id=promotion['id'], product_id=p)
+                                for p in members - linked])
+                    put_document(db, state, SpecialCollection, 'collection', collection,
+                                 {**promotion, 'productIds': sorted(members)})
+                    db.execute(delete(SpecialCollectionProduct).where(
+                        SpecialCollectionProduct.collection_id == collection))
+                    db.add_all([SpecialCollectionProduct(collection_id=collection, product_id=p)
+                                for p in members])
             if restricted_scope and only_ids is None and collection == 'best' and seen:
                 # A restricted card does not invalidate visible offers. Publish an
                 # additive snapshot: missing members cannot be considered removed.
@@ -217,7 +279,7 @@ class Synchronizer:
                     put_document(db, state, Promotion, 'promotion', promotion['id'], {**promotion, 'productIds': sorted(seen)})
                     db.execute(delete(ProductPromotion).where(ProductPromotion.promotion_id == promotion['id']))
                     db.add_all([ProductPromotion(promotion_id=promotion['id'], product_id=p) for p in seen])
-        if category and seen:
+        if category and seen and confirm_absences:
             # Only a successfully exhausted, non-empty scope may advance absences.
             # Use batches so even a 50k catalog is never materialized as ORM objects.
             ids = [c['id'] for c in self.categories if c['source_url'].startswith(BASE.rstrip('/') + category)]
@@ -270,12 +332,17 @@ class Synchronizer:
                     async def one(c):
                         async with gate:
                             try:
-                                await self.scope(c['source_url'], category=c['id'])
+                                await self.scope(c['source_url'], category=c['id'],
+                                                 confirm_absences=c['parent_id'] is None)
                                 self.stats['categoriesProcessed'] += 1
                             except Exception:
                                 self.stats['errors'] += 1
                                 log.exception('Category scope failed: %s', c['id'])
                     await asyncio.gather(*(one(c) for c in self.categories if c['parent_id'] is None))
+                    # Parent listings do not prove every subcategory is covered.
+                    # Inspect each discovered child too, without treating its
+                    # absence list as authoritative for the parent catalog.
+                    await asyncio.gather(*(one(c) for c in self.categories if c['parent_id'] is not None))
                     from .data_source import LinellaDataSource, configured_selections
                     data_source = LinellaDataSource(self)
                     if data_source.enabled:
