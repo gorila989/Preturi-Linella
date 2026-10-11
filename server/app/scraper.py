@@ -325,6 +325,13 @@ class Synchronizer:
                     db.flush()
                     run_id = run.id
                 try:
+                    if selection == {'mega_only': True}:
+                        from .mega_sync import sync_mega
+                        with session() as db:
+                            self.categories = [dict(id=c.id, parent_id=c.parent_id, source_url=c.source_url)
+                                               for c in db.scalars(select(Category))]
+                        await sync_mega(self)
+                        return
                     if selection is not None:
                         from .data_source import LinellaDataSource
                         with session() as db:
@@ -373,11 +380,17 @@ class Synchronizer:
                             except Exception:
                                 self.stats['errors'] += 1
                                 log.exception('Selective enrichment and fallback failed')
-                    for name, route in [('best', 'oferte-avantajoase/'), ('mega', 'mega-oferta/')]:
+                    for name, route in [('best', 'oferte-avantajoase/')]:
                         try: await self.scope(BASE+route, collection=name)
                         except Exception:
                             self.stats['errors'] += 1
                             log.exception('Collection scope failed: %s', name)
+                    try:
+                        from .mega_sync import sync_mega
+                        await sync_mega(self)
+                    except Exception:
+                        self.stats['errors'] += 1
+                        log.exception('Current Mega campaign sync failed; previous campaign preserved')
                     from .identifier_matching import reconcile_pending
                     reconcile_pending()
                 except Exception:

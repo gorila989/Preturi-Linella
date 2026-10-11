@@ -46,6 +46,7 @@ def main():
     parser = argparse.ArgumentParser()
     commands = parser.add_subparsers(dest='command', required=True)
     commands.add_parser('sync-linella')
+    commands.add_parser('sync-mega', help='Refresh only the dynamically discovered Mega campaign')
     diagnostics = commands.add_parser('diagnose-skus', help='Read-only SKU counts; no credentials printed')
     diagnostics.add_argument('--after', default='')
     diagnostics.add_argument('--render-url', default='')
@@ -65,6 +66,7 @@ def main():
     match.add_argument('product_id')
     args = parser.parse_args()
     if args.command == 'sync-linella': asyncio.run(sync())
+    elif args.command == 'sync-mega': asyncio.run(sync({'mega_only': True}))
     elif args.command == 'diagnose-skus':
         from .sku_diagnostics import diagnose_skus, compare_render
         try:
