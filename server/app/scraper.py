@@ -28,6 +28,7 @@ class Fetcher:
         self.age_attempted = False
 
     async def get(self, url):
+        form_url = url
         try:
             body = await self.request('GET', url)
         except httpx.HTTPStatusError as exc:
@@ -44,6 +45,7 @@ class Fetcher:
                         or query.get('dispatch') != ['age_verification.verify']
                         or query.get('type') != ['form']):
                     raise
+                form_url = destination
                 body = await self.request('GET', destination)
             else:
                 raise
@@ -54,9 +56,13 @@ class Fetcher:
         if form is None:
             return body
         async with self.age_lock:
-            if not self.age_attempted:
-                # Opt-in attestation supplied by the adult operator. Submit the
-                # source's actual form; never forge a verification cookie.
+            # Other GETs may have refreshed the session since this form was
+            # downloaded. Obtain its CSRF token again inside the confirmation lock.
+            body = await self.request('GET', form_url)
+            for attempt in range(2):
+                form = BeautifulSoup(body, 'lxml').select_one('form[name="age_verification"]')
+                if form is None:
+                    return body
                 if (form.get('method', '').lower() != 'post'
                         or public_url(form.get('action', ''), url) != BASE
                         or form.select_one('[name="dispatch[age_verification.verify]"]') is None):
@@ -70,9 +76,13 @@ class Fetcher:
                 data['dispatch[age_verification.verify]'] = ''
                 self.age_attempted = True
                 await self.request('POST', BASE, data=data, age_form=True)
-            # Concurrent requests can contain a gate fetched before the POST.
-            # Retry each original page once using the same HTTP session.
-            return await self.request('GET', url)
+                body = await self.request('GET', url)
+                doc = BeautifulSoup(body, 'lxml')
+                if doc.select_one('form[name="age_verification"], .ty-age-verification__block, .ty-age-verification__txt') is None:
+                    log.info('Official age confirmation verified at %s', url)
+                    return body
+                log.warning('Official age confirmation not accepted at %s (attempt %s/2)', url, attempt + 1)
+            raise ValueError('Official age confirmation failed after two attempts; restricted catalog was not imported')
 
     async def request(self, method, url, data=None, on_request=None, age_form=False):
         public_url(url)
@@ -328,6 +338,17 @@ class Synchronizer:
                     with session() as db, writer(db) as state:
                         for c in self.categories: upsert(db, state, Category, c, 'category')
                     # Non-overlapping root scopes; the shared fetcher caps global concurrency.
+                    if os.getenv('LINELLA_AGE_CONFIRMED', '').lower() == 'true':
+                        # Confirm before concurrent requests can mutate session cookies.
+                        age_category = next((c for c in self.categories if c['id'] == '/alcool/'), None)
+                        if age_category is None:
+                            raise ValueError('Authorized age-session preflight: alcohol category not discovered')
+                        preview = await self.fetcher.get(age_category['source_url'])
+                        _, preview_counts = parse_products(preview, age_category['id'])
+                        if (preview_counts['ageRestrictedPage'] or preview_counts['ageRestrictedCards']
+                                or not preview_counts['productsFound']):
+                            raise ValueError('Authorized age-session preflight failed; full import stopped')
+                        log.info('Age-session preflight passed: %s visible products', preview_counts['productsFound'])
                     gate = asyncio.Semaphore(4)
                     async def one(c):
                         async with gate:
