@@ -1,7 +1,7 @@
 name: cauta_pret
 description: Catalog Android offline cu sincronizare publica Linella.
 publish_to: none
-version: 2.0.3+7
+version: 2.0.7+11
 environment:
   sdk: '>=3.8.0 <4.0.0'
 dependencies:
@@ -35,4 +35,3 @@ flutter:
   uses-material-design: true
   assets:
     - assets/
-

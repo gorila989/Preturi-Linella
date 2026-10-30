@@ -25,7 +25,7 @@ on:
         type: string
         default: ''
   schedule:
-    - cron: '17 3 * * *'
+    - cron: '17 */6 * * *'
 
 permissions:
   contents: read
@@ -62,7 +62,7 @@ jobs:
           LINELLA_AGE_CONFIRMED: ${{ github.event.inputs.age_confirmed == 'true' && 'true' || vars.LINELLA_AGE_CONFIRMED || 'false' }}
           LINELLA_SEARCH_API_ENABLED: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.search_api || vars.LINELLA_SEARCH_API_ENABLED || 'false' }}
           LINELLA_SEARCH_SELECTIONS: ${{ vars.LINELLA_SEARCH_SELECTIONS || '[]' }}
-          RUN_MODE: ${{ github.event.inputs.mode || 'full' }}
+          RUN_MODE: ${{ github.event_name == 'schedule' && 'scheduled' || github.event.inputs.mode || 'full' }}
           SEARCH_QUERY: ${{ github.event.inputs.query || '' }}
           SEARCH_CATEGORY: ${{ github.event.inputs.category || '' }}
         run: |
@@ -71,6 +71,7 @@ jobs:
             exit 1
           fi
           case "$RUN_MODE" in
+            scheduled) python -m app.cli sync-scheduled ;;
             full) python -m app.cli sync-linella ;;
             mega) python -m app.cli sync-mega ;;
             selective)

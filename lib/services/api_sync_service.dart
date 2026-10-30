@@ -14,7 +14,7 @@ import 'sync_service.dart' show SyncMode, SyncReport, SyncCancelled;
 class ApiSyncService {
   static const defaultEndpoint = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://cauta-pret-linella.onrender.com',
+    defaultValue: 'https://preturi-linella.onrender.com',
   );
   final CatalogRepository database;
   final Directory imageDirectory;
@@ -110,6 +110,11 @@ class ApiSyncService {
       'status': 'running',
     });
     try {
+      await save(
+        database.db,
+        'apiLastError',
+        'Actualizare întreruptă sau nefinalizată.',
+      );
       final endpoint = validateEndpoint(
         await setting('apiUrl') ?? defaultEndpoint,
       );
@@ -174,6 +179,12 @@ class ApiSyncService {
             await save(t, 'apiVersion', '$version');
             await save(t, 'apiGeneration', gen);
             await save(t, 'apiLastSuccess', CatalogRepository.now());
+            await save(
+              t,
+              'sourceFreshness',
+              jsonEncode(response['freshness'] ?? {}),
+            );
+            await save(t, 'apiLastError', '');
           }
         });
         cursor = next;
@@ -181,7 +192,11 @@ class ApiSyncService {
       } while (cursor != null);
       await database.reconcilePendingIdentifiers(check: check);
       await thumbnails(notify, forceImages);
-      report.operation = 'Catalog actualizat. Datele sunt disponibile offline.';
+      final freshness =
+          jsonDecode(await setting('sourceFreshness') ?? '{}') as Map;
+      report.operation = freshness['status'] == 'fresh'
+          ? 'Catalog descărcat. Verificarea sursei este recentă.'
+          : 'Catalog descărcat. Prețuri posibil neactualizate; verifică data sursei.';
     } catch (e) {
       if (report.cancelled || e is SyncCancelled) {
         report.cancelled = true;
@@ -198,6 +213,9 @@ class ApiSyncService {
         if (e is FormatException) report.operation = e.message.toString();
       }
     } finally {
+      if (report.errors > 0 || report.cancelled) {
+        await save(database.db, 'apiLastError', report.operation);
+      }
       client.close();
       await database.db.update(
         'SyncHistory',
@@ -285,6 +303,7 @@ class ApiSyncService {
           'isInactive': d['inactive'] == true ? 1 : 0,
           'possibleInactive': d['possiblyInactive'] == true ? 1 : 0,
           'serverVersion': d['version'],
+          'lastUpdated': d['updatedAt'],
           if (_bootstrapMark != null) 'bootstrapMark': _bootstrapMark,
         };
         final result = await database.upsert(t, row, online: true);

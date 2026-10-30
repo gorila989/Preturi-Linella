@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import '../domain/models.dart';
 import 'local_database.dart';
@@ -48,7 +49,16 @@ class CatalogRepository {
       orderBy: 'endDateTime DESC',
       limit: 1,
     );
-    return r.isEmpty ? null : Promotion.fromRow(r.first);
+    if (r.isEmpty) return null;
+    final start = DateTime.tryParse(r.first['startDateTime']?.toString() ?? '');
+    final end = DateTime.tryParse(r.first['endDateTime']?.toString() ?? '');
+    if (start == null || end == null || end.isBefore(start)) {
+      debugPrint(
+        'Mega: perioada sincronizată lipsește sau este invalidă; countdown indisponibil.',
+      );
+      return null;
+    }
+    return Promotion.fromRow(r.first);
   }
 
   static const activeSql =
@@ -305,7 +315,9 @@ class CatalogRepository {
     data['searchText'] = folded(
       '${merged['name'] ?? ''} ${merged['sku'] ?? ''} ${merged['barcode'] ?? ''} ${merged['brand'] ?? ''}',
     );
-    data['lastUpdated'] = now();
+    data['lastUpdated'] = online && data['lastUpdated'] != null
+        ? data['lastUpdated']
+        : now();
     if (old == null) {
       await t.insert('Product', data);
     } else {

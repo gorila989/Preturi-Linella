@@ -308,6 +308,8 @@ class Synchronizer:
 
     async def run(self, selection=None):
         self.enrich_sku = True
+        self.stats['scope'] = 'full' if selection is None else 'selected'
+        self.stats['priceRefreshComplete'] = False
         started = time.monotonic()
         # Session advisory locks survive statement commits. Keep this dedicated
         # connection out of a transaction while HTTP requests and page writes run;
@@ -320,7 +322,7 @@ class Synchronizer:
                     # The advisory lock proves no prior worker still owns a run.
                     for interrupted in db.scalars(select(SyncRun).where(SyncRun.status == 'running')):
                         interrupted.status, interrupted.finished_at = 'interrupted', now()
-                    run = SyncRun()
+                    run = SyncRun(stats=dict(self.stats))
                     db.add(run)
                     db.flush()
                     run_id = run.id
@@ -341,7 +343,8 @@ class Synchronizer:
                         reconcile_pending()
                         return
                     source = await self.fetcher.get(BASE+'toate-categoriile/')
-                    self.categories = parse_categories(source)
+                    excluded = ('/exclusiv-online/', '/produs-acasa/')
+                    self.categories = [c for c in parse_categories(source) if not c['id'].startswith(excluded)]
                     with session() as db, writer(db) as state:
                         for c in self.categories: upsert(db, state, Category, c, 'category')
                     # Non-overlapping root scopes; the shared fetcher caps global concurrency.
@@ -393,10 +396,15 @@ class Synchronizer:
                         log.exception('Current Mega campaign sync failed; previous campaign preserved')
                     from .identifier_matching import reconcile_pending
                     reconcile_pending()
-                except Exception:
+                except Exception as exc:
                     self.stats['errors'] += 1
+                    if isinstance(exc, httpx.HTTPStatusError) and exc.response.status_code == 403:
+                        self.stats['sourceError'] = 'access_denied'
                     raise
                 finally:
+                    self.stats['priceRefreshComplete'] = (self.stats['scope'] == 'full'
+                        and self.stats['categoriesProcessed'] > 0
+                        and not any(self.stats[k] for k in ('errors', 'ageRestrictedPages', 'ageRestrictedCards', 'searchPromotionConflicts')))
                     self.stats.update(totalRequests=self.fetcher.requests, durationMs=int((time.monotonic()-started)*1000))
                     with session() as db, db.begin():
                         run = db.get(SyncRun, run_id)

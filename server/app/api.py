@@ -9,6 +9,7 @@ from sqlalchemy import select, text, func, case, cast, String
 from .db import session
 from .models import CatalogState, ProductChange, Product, Category, Promotion, SpecialCollection
 from .catalog import payload
+from .freshness import source_freshness
 
 app = FastAPI(title='Caută Preț', version='2.0.0')
 app.add_middleware(GZipMiddleware, minimum_size=1000)
@@ -43,7 +44,7 @@ def health():
         with session() as db:
             db.execute(text('SELECT 1'))
             state = db.get(CatalogState, 1)
-            return dict(status='ok', database='postgresql', serverVersion=state.version if state else 0)
+            return dict(status='ok', database='postgresql', serverVersion=state.version if state else 0, freshness=source_freshness(db))
     except Exception:
         raise HTTPException(503, 'Database or configuration unavailable')
 
@@ -77,7 +78,7 @@ def sync_page(mode, since, cursor, generation, limit):
                     .order_by(c.version).limit(limit + 1)).mappings().all()
         more, page = len(rows) > limit, rows[:limit]
         next_cursor = token({**bounds, 'after': page[-1]['key']}) if more else None
-        return dict(generation=state.generation, serverVersion=bounds['until'], nextCursor=next_cursor,
+        return dict(generation=state.generation, serverVersion=bounds['until'], nextCursor=next_cursor, freshness=source_freshness(db),
                     changes=[dict(kind=r['kind'], id=r['entity_id'], data=r['payload']) for r in page])
 
 

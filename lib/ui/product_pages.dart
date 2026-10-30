@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../app_state.dart';
 import '../domain/models.dart';
 import 'widgets.dart';
+import 'source_status.dart';
 import 'transfer_pages.dart';
 import 'pending_page.dart';
 
@@ -67,7 +68,12 @@ class _ProductsPageState extends State<ProductsPage>
   Future<void> scheduleExpiry() async {
     expiry?.cancel();
     final r = await widget.state.database.db.rawQuery(
-      'SELECT min(endDateTime) AS expiry FROM Promotion WHERE endDateTime>=?',
+      '''SELECT min(moment) AS expiry FROM (
+        SELECT endDateTime AS moment FROM Promotion
+        UNION ALL SELECT startDateTime FROM Promotion
+        UNION ALL SELECT promotionEnd FROM Product WHERE promotionState='dated'
+        UNION ALL SELECT promotionStart FROM Product WHERE promotionState='dated'
+      ) WHERE moment>?''',
       [DateTime.now().toUtc().toIso8601String()],
     );
     final end = r.first['expiry'] as String?;
@@ -344,6 +350,8 @@ class _ProductsPageState extends State<ProductsPage>
                                         fontSize: 16,
                                       ),
                                     ),
+                                    if (p.data['inStock'] == 0)
+                                      const Text('Momentan indisponibil'),
                                     if (p.text('sku') != null)
                                       Text(
                                         'SKU: ${p.text('sku')}',
@@ -407,8 +415,39 @@ class ProductPage extends StatefulWidget {
   State<ProductPage> createState() => _ProductPageState();
 }
 
-class _ProductPageState extends State<ProductPage> {
+class _ProductPageState extends State<ProductPage> with WidgetsBindingObserver {
   late Future<Product?> product = widget.state.database.byId(widget.id);
+  Timer? expiry;
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    widget.state.addListener(refreshProduct);
+    expiry = Timer.periodic(
+      const Duration(minutes: 1),
+      (_) => refreshProduct(),
+    );
+  }
+
+  void refreshProduct() {
+    if (mounted) {
+      setState(() => product = widget.state.database.byId(widget.id));
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) refreshProduct();
+  }
+
+  @override
+  void dispose() {
+    expiry?.cancel();
+    widget.state.removeListener(refreshProduct);
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('Detalii produs')),
@@ -460,10 +499,15 @@ class _ProductPageState extends State<ProductPage> {
                     : 'Promoție activă',
                 style: const TextStyle(color: Colors.red),
               ),
+            if (!p.active && p.text('promotionState') == 'dated')
+              const Text(
+                'Promoția nu este activă. Preț normal salvat, de reverificat.',
+              ),
+            SourceStatus(widget.state.database),
             if (p.data['needsReview'] == 1) const Text('Necesită verificare'),
             const SizedBox(height: 12),
             Text(
-              'Ultima actualizare: ${stamp(p.text('lastUpdated'))}\nPrețuri salvate din sursa publică sau din import.',
+              'Preț/date modificate în catalog: ${stamp(p.text('lastUpdated'))}\nPrețuri salvate din sursa publică sau din import.',
             ),
             const SizedBox(height: 24),
             OutlinedButton.icon(

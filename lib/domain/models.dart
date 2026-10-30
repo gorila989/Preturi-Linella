@@ -69,8 +69,17 @@ class Product {
   String? text(String key) => data[key] as String?;
   double? number(String key) => (data[key] as num?)?.toDouble();
   bool get active => data['activePromotion'] == 1;
-  double? get price =>
-      active ? number('promotionalPrice') ?? number('price') : number('price');
+  double? get price {
+    if (active) return number('promotionalPrice') ?? number('price');
+    // Some source snapshots store the discounted value in both price fields.
+    // Never keep displaying that value once the dated promotion is inactive.
+    if (text('promotionState') == 'dated' &&
+        number('promotionalPrice') != null &&
+        number('price') == number('promotionalPrice')) {
+      return number('oldPrice');
+    }
+    return number('price');
+  }
 }
 
 class Promotion {

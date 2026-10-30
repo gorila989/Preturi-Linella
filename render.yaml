@@ -30,9 +30,9 @@ services:
     runtime: python
     rootDir: server
     plan: 0.5c-512mb
-    schedule: '0 3 * * *'
+    schedule: '0 */6 * * *'
     buildCommand: pip install -r requirements.lock
-    startCommand: python -m app.cli sync-linella
+    startCommand: python -m app.cli sync-scheduled
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.10
