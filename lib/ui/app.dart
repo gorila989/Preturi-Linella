@@ -433,7 +433,7 @@ class _HomePageState extends State<HomePage> {
         child: Padding(
           padding: EdgeInsets.all(18),
           child: Text(
-            'CAUTĂ PREȚ • 2.0.7\nCatalog personal offline.\nDate publice Linella și fișiere importate.\nInternetul este folosit doar la actualizare.\nPrețurile salvate pot diferi de cele actuale din magazin.',
+            'CAUTĂ PREȚ • 2.0.8\nCatalog personal offline.\nDate publice Linella și fișiere importate.\nInternetul este folosit la actualizare și la vizualizarea paginii Linella.\nPrețurile salvate pot diferi de cele actuale din magazin.',
           ),
         ),
       ),

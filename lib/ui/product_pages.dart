@@ -4,6 +4,7 @@ import '../app_state.dart';
 import '../domain/models.dart';
 import 'widgets.dart';
 import 'source_status.dart';
+import 'online_price.dart';
 import 'transfer_pages.dart';
 import 'pending_page.dart';
 
@@ -479,6 +480,9 @@ class _ProductPageState extends State<ProductPage> with WidgetsBindingObserver {
                 'Categorie: ${widget.state.categories.where((c) => c.id == p.text('categoryNodeId')).firstOrNull?.name ?? p.text('categoryNodeId')}',
               ),
             const SizedBox(height: 16),
+            OnlinePriceButton(productUrl: p.text('productUrl')),
+            const SizedBox(height: 16),
+            const Text('Preț salvat pe telefon'),
             if (p.active && p.number('oldPrice') != null)
               Text(
                 'Preț vechi: ${money(p.number('oldPrice'))}',
