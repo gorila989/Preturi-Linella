@@ -8,6 +8,7 @@ import 'scanner_page.dart';
 import 'transfer_pages.dart';
 import 'widgets.dart';
 import 'source_status.dart';
+import 'promotions_page.dart';
 import 'pending_page.dart';
 import 'storage_page.dart';
 
@@ -159,13 +160,7 @@ class _HomePageState extends State<HomePage> {
             return;
           }
           if (v == 3) {
-            open(
-              ProductsPage(
-                s,
-                title: 'Promoții active',
-                filter: const ProductFilter(promotions: true),
-              ),
-            );
+            open(PromotionsPage(s));
             return;
           }
           setState(() => index = v);
@@ -433,7 +428,7 @@ class _HomePageState extends State<HomePage> {
         child: Padding(
           padding: EdgeInsets.all(18),
           child: Text(
-            'CAUTĂ PREȚ • 2.0.8\nCatalog personal offline.\nDate publice Linella și fișiere importate.\nInternetul este folosit la actualizare și la vizualizarea paginii Linella.\nPrețurile salvate pot diferi de cele actuale din magazin.',
+            'CAUTĂ PREȚ • 2.0.9\nCatalog personal offline.\nDate publice Linella și fișiere importate.\nInternetul este folosit la actualizare și la vizualizarea paginii Linella.\nPrețurile salvate pot diferi de cele actuale din magazin.',
           ),
         ),
       ),

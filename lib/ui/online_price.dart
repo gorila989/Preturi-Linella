@@ -24,10 +24,17 @@ Future<bool> openOnlinePrice(Uri uri) async {
 
 class OnlinePriceButton extends StatefulWidget {
   final String? productUrl;
+  final String label;
+  final String description;
   final Future<bool> Function(Uri) open;
   const OnlinePriceButton({
     super.key,
     required this.productUrl,
+    this.label = 'VEZI PREȚUL PE LINELLA',
+    this.description =
+        'Online • pagina produsului se deschide într-o filă în aplicație. '
+        'Dacă apare o verificare de securitate, urmează pașii de pe site. '
+        'Închide fila pentru a reveni. Prețul online nu se salvează automat.',
     this.open = openOnlinePrice,
   });
 
@@ -75,13 +82,9 @@ class _OnlinePriceButtonState extends State<OnlinePriceButton> {
         FilledButton.icon(
           onPressed: opening ? null : () => open(uri),
           icon: const Icon(Icons.public),
-          label: Text(opening ? 'SE DESCHIDE…' : 'VEZI PREȚUL PE LINELLA'),
+          label: Text(opening ? 'SE DESCHIDE…' : widget.label),
         ),
-        const Text(
-          'Online • pagina produsului se deschide într-o filă în aplicație. '
-          'Dacă apare o verificare de securitate, urmează pașii de pe site. '
-          'Închide fila pentru a reveni. Prețul online nu se salvează automat.',
-        ),
+        if (widget.description.isNotEmpty) Text(widget.description),
         if (error != null)
           Text(
             error!,

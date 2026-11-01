@@ -1,7 +1,7 @@
 name: cauta_pret
 description: Catalog Android offline cu sincronizare publica Linella.
 publish_to: none
-version: 2.0.8+12
+version: 2.0.9+13
 environment:
   sdk: '>=3.8.0 <4.0.0'
 dependencies:
